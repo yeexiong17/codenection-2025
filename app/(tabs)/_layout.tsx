@@ -3,9 +3,10 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
@@ -29,15 +30,36 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'chart-bar' }} size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="ai-chat"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'AI Chat',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'brain' }} size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="toolkit"
+        options={{
+          title: 'Toolkit',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'wand-sparkles' }} size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: 'Calendar',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'calendar' }} size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'gear' }} size={24} color={color} />,
         }}
       />
     </Tabs>
