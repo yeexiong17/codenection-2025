@@ -2,9 +2,10 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { PageHeader } from '@/components/PageHeader';
+import { StressHeatmap } from '@/components/StressHeatmap';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { ThemedView as View } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -21,7 +22,11 @@ function InsightsTab() {
   };
 
   return (
-    <View style={styles.tabContent}>
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       {mockStressInsights.map((insight: StressInsight) => (
         <TouchableOpacity
           key={insight.id}
@@ -33,7 +38,7 @@ function InsightsTab() {
           <Text style={styles.insightRecommendation}>{insight.recommendation}</Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -42,7 +47,11 @@ function UpcomingTab() {
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <View style={styles.tabContent}>
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       {mockCalendarEvents
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map((event: CalendarEvent) => (
@@ -62,13 +71,14 @@ function UpcomingTab() {
             </View>
           </TouchableOpacity>
         ))}
-    </View>
+    </ScrollView>
   );
 };
 
 function SummaryTab() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const screenWidth = Dimensions.get('window').width - 32; // Account for padding
 
   const stats = {
     upcomingEvents: mockCalendarEvents.length,
@@ -76,17 +86,60 @@ function SummaryTab() {
     nextEvent: mockCalendarEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0],
   };
 
+  // Calculate stress level distribution for doughnut chart
+  const stressLevels = {
+    low: mockStressInsights.filter(i => i.severity === 'low').length,
+    medium: mockStressInsights.filter(i => i.severity === 'medium').length,
+    high: mockStressInsights.filter(i => i.severity === 'high').length,
+  };
+
+  const doughnutData = [
+    {
+      name: 'Low',
+      count: stressLevels.low || 1,
+      color: '#7C9A92', // Sage green - calming
+      legendFontColor: colors.text,
+      legendFontSize: 12,
+    },
+    {
+      name: 'Medium',
+      count: stressLevels.medium || 1,
+      color: '#9F91CC', // Soft lavender - gentle alert
+      legendFontColor: colors.text,
+      legendFontSize: 12,
+    },
+    {
+      name: 'High',
+      count: stressLevels.high || 1,
+      color: '#B5838D', // Muted rose - caring urgency
+      legendFontColor: colors.text,
+      legendFontSize: 12,
+    },
+  ];
+
+  // Prepare stress data for line chart
+  const stressData = {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [{
+      data: [3, 2, 4, 3, 5, 2, 1], // Mock stress levels (1-5)
+      color: (opacity = 1) => `rgba(81, 150, 244, ${opacity})`, // Optional
+      strokeWidth: 2 // Optional
+    }],
+  };
+
   return (
-    <View style={styles.tabContent}>
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <StressHeatmap />
+
       <View style={[styles.summaryCard, { backgroundColor: colors.cardBackground }]}>
         <Text style={styles.summaryTitle}>Today's Overview</Text>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Upcoming Events</Text>
           <Text style={styles.summaryValue}>{stats.upcomingEvents}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>High Stress Alerts</Text>
-          <Text style={styles.summaryValue}>{stats.highStressCount}</Text>
         </View>
         <View style={styles.divider} />
         <Text style={styles.summaryLabel}>Next Event</Text>
@@ -95,7 +148,8 @@ function SummaryTab() {
           {format(new Date(stats.nextEvent.date), 'h:mm a')}
         </Text>
       </View>
-    </View>
+
+    </ScrollView>
   );
 };
 
@@ -146,6 +200,24 @@ const getInsightSeverityColor = (severity: StressInsight['severity']) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  chartCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 16,
   },
   tabBar: {
     elevation: 0,
