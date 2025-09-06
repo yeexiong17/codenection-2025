@@ -20,11 +20,14 @@ export interface AIRecommendation {
     time: string;
     title: string;
     description: string;
-    category: 'wellness' | 'productivity' | 'mindfulness' | 'social' | 'health';
+    category: 'wellness' | 'productivity' | 'mindfulness' | 'social' | 'health' | 'calendar';
     priority: 'high' | 'medium' | 'low';
     duration: string;
     icon: string;
     completed?: boolean;
+    isCalendarEvent?: boolean;
+    isWellnessBreak?: boolean;
+    eventType?: string;
 }
 
 export interface CalendarSource {

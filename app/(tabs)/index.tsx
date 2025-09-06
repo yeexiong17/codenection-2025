@@ -437,13 +437,128 @@ function AIRecommendationsTab() {
     });
   };
 
+  const getIntelligentSchedule = () => {
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+
+    // Get today's calendar events
+    const todayEvents = mockCalendarEvents.filter(event => {
+      const eventDate = new Date(event.date).toISOString().split('T')[0];
+      return eventDate === todayString;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Create a combined schedule with wellness activities and calendar events
+    const combinedSchedule = [];
+
+    // Add morning wellness routine (7:00 - 9:00)
+    const morningWellness = mockAIRecommendations.filter(rec => {
+      const [hour] = rec.time.split(':').map(Number);
+      return hour >= 7 && hour < 9;
+    });
+    combinedSchedule.push(...morningWellness);
+
+    // Process calendar events and insert wellness breaks
+    todayEvents.forEach((event, index) => {
+      const eventTime = new Date(event.date);
+      const eventHour = eventTime.getHours();
+      const eventMinute = eventTime.getMinutes();
+
+      // Add calendar event
+      combinedSchedule.push({
+        id: `calendar-${event.id}`,
+        time: `${eventHour.toString().padStart(2, '0')}:${eventMinute.toString().padStart(2, '0')}`,
+        title: event.title,
+        description: event.description || `Scheduled ${event.type} event`,
+        category: 'calendar' as any,
+        priority: 'high' as any,
+        duration: '60 min',
+        icon: event.type === 'exam' ? '📝' : event.type === 'class' ? '🎓' : event.type === 'bill' ? '💰' : '📅',
+        isCalendarEvent: true,
+        eventType: event.type
+      });
+
+      // Insert wellness break if there's a gap before next event
+      if (index < todayEvents.length - 1) {
+        const nextEvent = todayEvents[index + 1];
+        const nextEventTime = new Date(nextEvent.date);
+        const timeDiff = nextEventTime.getTime() - eventTime.getTime();
+        const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+        // If there's more than 1.5 hours between events, suggest a wellness break
+        if (hoursDiff > 1.5) {
+          const breakTime = new Date(eventTime.getTime() + (60 * 60 * 1000)); // 1 hour after current event
+          const breakHour = breakTime.getHours();
+          const breakMinute = breakTime.getMinutes();
+
+          // Choose appropriate wellness activity based on event type
+          let wellnessActivity;
+          if (event.type === 'exam') {
+            wellnessActivity = {
+              id: `wellness-break-${event.id}`,
+              time: `${breakHour.toString().padStart(2, '0')}:${breakMinute.toString().padStart(2, '0')}`,
+              title: 'Post-Exam Recovery',
+              description: 'Take a mindful break to decompress after your exam',
+              category: 'wellness' as any,
+              priority: 'high' as any,
+              duration: '15 min',
+              icon: '🧘‍♀️',
+              isWellnessBreak: true
+            };
+          } else if (event.type === 'class') {
+            wellnessActivity = {
+              id: `wellness-break-${event.id}`,
+              time: `${breakHour.toString().padStart(2, '0')}:${breakMinute.toString().padStart(2, '0')}`,
+              title: 'Movement Break',
+              description: 'Stretch and move your body after sitting in class',
+              category: 'wellness' as any,
+              priority: 'medium' as any,
+              duration: '10 min',
+              icon: '🤸‍♀️',
+              isWellnessBreak: true
+            };
+          } else {
+            wellnessActivity = {
+              id: `wellness-break-${event.id}`,
+              time: `${breakHour.toString().padStart(2, '0')}:${breakMinute.toString().padStart(2, '0')}`,
+              title: 'Mindful Break',
+              description: 'Take a moment to center yourself and recharge',
+              category: 'mindfulness' as any,
+              priority: 'medium' as any,
+              duration: '10 min',
+              icon: '🌱',
+              isWellnessBreak: true
+            };
+          }
+
+          combinedSchedule.push(wellnessActivity);
+        }
+      }
+    });
+
+    // Add evening wellness routine (18:00 - 22:00)
+    const eveningWellness = mockAIRecommendations.filter(rec => {
+      const [hour] = rec.time.split(':').map(Number);
+      return hour >= 18 && hour <= 22;
+    });
+    combinedSchedule.push(...eveningWellness);
+
+    // Sort by time
+    return combinedSchedule.sort((a, b) => {
+      const [hourA, minuteA] = a.time.split(':').map(Number);
+      const [hourB, minuteB] = b.time.split(':').map(Number);
+      return (hourA * 60 + minuteA) - (hourB * 60 + minuteB);
+    });
+  };
+
+  const intelligentSchedule = getIntelligentSchedule();
+
   const getCurrentTimeRecommendation = () => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTime = currentHour * 60 + currentMinute;
 
-    return mockAIRecommendations.find(rec => {
+    return intelligentSchedule.find(rec => {
       const [hour, minute] = rec.time.split(':').map(Number);
       const recTime = hour * 60 + minute;
       return Math.abs(recTime - currentTime) <= 30; // Within 30 minutes
@@ -463,7 +578,7 @@ function AIRecommendationsTab() {
         <View style={styles.progressHeader}>
           <Text style={[styles.progressTitle, { color: colors.text }]}>Today's Progress</Text>
           <Text style={[styles.progressPercentage, { color: colors.tint }]}>
-            {Math.round((completedItems.size / mockAIRecommendations.length) * 100)}%
+            {Math.round((completedItems.size / intelligentSchedule.filter(item => !item.isCalendarEvent).length) * 100)}%
           </Text>
         </View>
 
@@ -472,7 +587,7 @@ function AIRecommendationsTab() {
             style={[
               styles.progressBar,
               {
-                width: `${(completedItems.size / mockAIRecommendations.length) * 100}%`,
+                width: `${(completedItems.size / intelligentSchedule.filter(item => !item.isCalendarEvent).length) * 100}%`,
                 backgroundColor: colors.tint
               }
             ]}
@@ -480,7 +595,7 @@ function AIRecommendationsTab() {
         </View>
 
         <Text style={[styles.progressDetailText, { color: colors.text }]}>
-          {completedItems.size} of {mockAIRecommendations.length} activities completed
+          {completedItems.size} of {intelligentSchedule.filter(item => !item.isCalendarEvent).length} wellness activities completed
         </Text>
       </View>
 
@@ -490,7 +605,7 @@ function AIRecommendationsTab() {
       <View style={[styles.timelineCard, { backgroundColor: colors.background }]}>
         <View style={styles.timelineHeader}>
           <Text style={[styles.timelineTitle, { color: colors.text }]}>
-            Your Daily Wellness Timeline
+            AI-Powered Daily Schedule
           </Text>
           <View style={[styles.timelineIcon, { backgroundColor: colors.tint }]}>
             <Text style={styles.timelineIconText}>⏰</Text>
@@ -498,16 +613,23 @@ function AIRecommendationsTab() {
         </View>
 
         <View style={styles.timelineContainer}>
-          {mockAIRecommendations.map((recommendation, index) => {
+          {intelligentSchedule.map((recommendation, index) => {
             const isCompleted = completedItems.has(recommendation.id);
-            const isLast = index === mockAIRecommendations.length - 1;
+            const isLast = index === intelligentSchedule.length - 1;
+            const isCalendarEvent = recommendation.isCalendarEvent;
+            const isWellnessBreak = recommendation.isWellnessBreak;
 
             return (
               <View key={recommendation.id} style={styles.timelineItem}>
                 <View style={styles.timelineLeft}>
                   <View style={[
                     styles.timelineDot,
-                    { backgroundColor: isCompleted ? '#4CAF50' : getCategoryColor(recommendation.category) }
+                    {
+                      backgroundColor: isCompleted ? '#4CAF50' :
+                        isCalendarEvent ? '#FF6B6B' :
+                          isWellnessBreak ? '#FFA726' :
+                            getCategoryColor(recommendation.category)
+                    }
                   ]}>
                     <Text style={styles.timelineDotIcon}>{recommendation.icon}</Text>
                   </View>
@@ -520,11 +642,19 @@ function AIRecommendationsTab() {
                   <TouchableOpacity
                     style={[
                       styles.recommendationCard,
-                      { backgroundColor: isCompleted ? '#E8F5E8' : colors.cardBackground },
-                      isCompleted && { opacity: 0.7 }
+                      {
+                        backgroundColor: isCompleted ? '#E8F5E8' :
+                          isCalendarEvent ? '#FFF5F5' :
+                            isWellnessBreak ? '#FFF8E1' :
+                              colors.cardBackground
+                      },
+                      isCompleted && { opacity: 0.7 },
+                      isCalendarEvent && { borderLeftWidth: 3, borderLeftColor: '#FF6B6B' },
+                      isWellnessBreak && { borderLeftWidth: 3, borderLeftColor: '#FFA726' }
                     ]}
-                    onPress={() => toggleCompletion(recommendation.id)}
-                    activeOpacity={0.7}
+                    onPress={() => !isCalendarEvent && toggleCompletion(recommendation.id)}
+                    activeOpacity={isCalendarEvent ? 1 : 0.7}
+                    disabled={isCalendarEvent}
                   >
                     <View style={styles.recommendationHeader}>
                       <View style={styles.recommendationTimeContainer}>
@@ -538,13 +668,23 @@ function AIRecommendationsTab() {
                       </View>
                       <View style={[
                         styles.categoryBadge,
-                        { backgroundColor: getCategoryColor(recommendation.category) + '20' }
+                        {
+                          backgroundColor: isCalendarEvent ? '#FF6B6B20' :
+                            isWellnessBreak ? '#FFA72620' :
+                              getCategoryColor(recommendation.category) + '20'
+                        }
                       ]}>
                         <Text style={[
                           styles.categoryBadgeText,
-                          { color: getCategoryColor(recommendation.category) }
+                          {
+                            color: isCalendarEvent ? '#FF6B6B' :
+                              isWellnessBreak ? '#FFA726' :
+                                getCategoryColor(recommendation.category)
+                          }
                         ]}>
-                          {recommendation.category.toUpperCase()}
+                          {isCalendarEvent ? 'CALENDAR' :
+                            isWellnessBreak ? 'AI BREAK' :
+                              recommendation.category.toUpperCase()}
                         </Text>
                       </View>
                     </View>
@@ -565,9 +705,11 @@ function AIRecommendationsTab() {
                       <Text style={[styles.recommendationDuration, { color: colors.text }]}>
                         ⏱️ {recommendation.duration}
                       </Text>
-                      {isCompleted && (
+                      {isCalendarEvent ? (
+                        <Text style={[styles.completedText, { color: '#FF6B6B' }]}>📅 Scheduled</Text>
+                      ) : isCompleted ? (
                         <Text style={styles.completedText}>✓ Completed</Text>
-                      )}
+                      ) : null}
                     </View>
                   </TouchableOpacity>
                 </View>
