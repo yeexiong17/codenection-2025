@@ -1,15 +1,15 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Dimensions, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { PageHeader } from '@/components/PageHeader';
 import { StressHeatmap } from '@/components/StressHeatmap';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { ThemedView as View } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { CalendarEvent, mockCalendarEvents, mockStressInsights, StressInsight } from '@/constants/MockData';
+import { mockCalendarEvents, mockStressInsights, StressInsight } from '@/constants/MockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 function InsightsTab() {
@@ -21,111 +21,381 @@ function InsightsTab() {
     router.push(`/insight-detail?id=${insightId}`);
   };
 
+  // Calculate insights statistics
+  const insightsStats = {
+    total: mockStressInsights.length,
+    high: mockStressInsights.filter(i => i.severity === 'high').length,
+    medium: mockStressInsights.filter(i => i.severity === 'medium').length,
+    low: mockStressInsights.filter(i => i.severity === 'low').length,
+  };
+
+  const getInsightTrend = () => {
+    // Mock trend calculation - in real app, this would compare with previous periods
+    const recentHigh = mockStressInsights.filter(i => i.severity === 'high').length;
+    if (recentHigh > 2) return { direction: 'up', text: 'Stress levels are trending higher' };
+    if (recentHigh < 1) return { direction: 'down', text: 'Stress levels are improving' };
+    return { direction: 'stable', text: 'Stress levels are stable' };
+  };
+
+  const trend = getInsightTrend();
+
+  const getMoodPatterns = () => {
+    // Mock mood pattern analysis
+    return [
+      { pattern: 'Morning Anxiety', frequency: '3 days this week', severity: 'medium' },
+      { pattern: 'Evening Stress', frequency: '2 days this week', severity: 'low' },
+      { pattern: 'Work Pressure', frequency: '4 days this week', severity: 'high' },
+    ];
+  };
+
+  const moodPatterns = getMoodPatterns();
+
+  const getWellnessTips = () => {
+    return [
+      {
+        title: 'Deep Breathing',
+        description: 'Practice 4-7-8 breathing technique',
+        icon: '🫁',
+        category: 'Relaxation'
+      },
+      {
+        title: 'Mindful Walking',
+        description: 'Take a 10-minute mindful walk',
+        icon: '🚶',
+        category: 'Movement'
+      },
+      {
+        title: 'Gratitude Journal',
+        description: 'Write down 3 things you\'re grateful for',
+        icon: '📝',
+        category: 'Reflection'
+      },
+      {
+        title: 'Progressive Relaxation',
+        description: 'Tense and release each muscle group',
+        icon: '🧘',
+        category: 'Relaxation'
+      }
+    ];
+  };
+
+  const wellnessTips = getWellnessTips();
+
   return (
     <ScrollView
       style={styles.tabContent}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {mockStressInsights.map((insight: StressInsight) => (
-        <TouchableOpacity
-          key={insight.id}
-          style={[styles.insightCard, { backgroundColor: getInsightSeverityColor(insight.severity) }]}
-          onPress={() => handleInsightPress(insight.id)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.insightMessage}>{insight.message}</Text>
-          <Text style={styles.insightRecommendation}>{insight.recommendation}</Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  );
-};
+      {/* Insights Overview */}
+      <View style={[styles.insightsOverviewCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Insights Overview</Text>
+        <View style={styles.insightsStatsGrid}>
+          <View style={styles.insightStatItem}>
+            <Text style={[styles.insightStatNumber, { color: colors.tint }]}>{insightsStats.total}</Text>
+            <Text style={[styles.insightStatLabel, { color: colors.text }]}>Total Insights</Text>
+          </View>
+          <View style={styles.insightStatItem}>
+            <Text style={[styles.insightStatNumber, { color: '#B5838D' }]}>{insightsStats.high}</Text>
+            <Text style={[styles.insightStatLabel, { color: colors.text }]}>High Priority</Text>
+          </View>
+          <View style={styles.insightStatItem}>
+            <Text style={[styles.insightStatNumber, { color: '#9F91CC' }]}>{insightsStats.medium}</Text>
+            <Text style={[styles.insightStatLabel, { color: colors.text }]}>Medium</Text>
+          </View>
+          <View style={styles.insightStatItem}>
+            <Text style={[styles.insightStatNumber, { color: '#7C9A92' }]}>{insightsStats.low}</Text>
+            <Text style={[styles.insightStatLabel, { color: colors.text }]}>Low</Text>
+          </View>
+        </View>
+      </View>
 
-function UpcomingTab() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+      {/* Trend Analysis */}
+      <View style={[styles.trendCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Trend Analysis</Text>
+        <View style={styles.trendContent}>
+          <View style={styles.trendIcon}>
+            <Text style={styles.trendEmoji}>
+              {trend.direction === 'up' ? '📈' : trend.direction === 'down' ? '📉' : '➡️'}
+            </Text>
+          </View>
+          <View style={styles.trendDetails}>
+            <Text style={[styles.trendText, { color: colors.text }]}>{trend.text}</Text>
+            <Text style={[styles.trendSubtext, { color: colors.text }]}>
+              Based on your recent activity patterns
+            </Text>
+          </View>
+        </View>
+      </View>
 
-  return (
-    <ScrollView
-      style={styles.tabContent}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {mockCalendarEvents
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .map((event: CalendarEvent) => (
+      {/* Mood Patterns */}
+      <View style={[styles.patternsCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Mood Patterns</Text>
+        {moodPatterns.map((pattern, index) => (
+          <View key={index} style={styles.patternItem}>
+            <View style={styles.patternInfo}>
+              <Text style={[styles.patternName, { color: colors.text }]}>{pattern.pattern}</Text>
+              <Text style={[styles.patternFrequency, { color: colors.text }]}>{pattern.frequency}</Text>
+            </View>
+            <View style={[
+              styles.patternSeverity,
+              { backgroundColor: getInsightSeverityColor(pattern.severity as any) }
+            ]}>
+              <Text style={styles.patternSeverityText}>{pattern.severity.toUpperCase()}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Wellness Tips */}
+      <View style={[styles.tipsCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Personalized Tips</Text>
+        <View style={styles.tipsGrid}>
+          {wellnessTips.map((tip, index) => (
+            <TouchableOpacity key={index} style={styles.tipItem} activeOpacity={0.7}>
+              <View style={[styles.tipIcon, { backgroundColor: colors.tint }]}>
+                <Text style={styles.tipEmoji}>{tip.icon}</Text>
+              </View>
+              <Text style={[styles.tipTitle, { color: colors.text }]}>{tip.title}</Text>
+              <Text style={[styles.tipDescription, { color: colors.text }]}>{tip.description}</Text>
+              <View style={[styles.tipCategory, { backgroundColor: colors.tint + '20' }]}>
+                <Text style={[styles.tipCategoryText, { color: colors.tint }]}>{tip.category}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Recent Insights */}
+      <View style={[styles.recentInsightsCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Insights</Text>
+        {mockStressInsights.slice(0, 3).map((insight: StressInsight) => (
           <TouchableOpacity
-            key={event.id}
-            style={[styles.eventCard, { backgroundColor: colors.cardBackground }]}
+            key={insight.id}
+            style={[styles.insightCard, { backgroundColor: getInsightSeverityColor(insight.severity) }]}
+            onPress={() => handleInsightPress(insight.id)}
+            activeOpacity={0.8}
           >
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <Text style={styles.eventDate}>
-                {format(new Date(event.date), 'MMM d, h:mm a')}
-              </Text>
-            </View>
-            <Text style={styles.eventDescription}>{event.description}</Text>
-            <View style={[styles.eventType, { backgroundColor: getEventTypeColor(event.type) }]}>
-              <Text style={styles.eventTypeText}>{event.type.toUpperCase()}</Text>
-            </View>
+            <Text style={styles.insightMessage}>{insight.message}</Text>
+            <Text style={styles.insightRecommendation}>{insight.recommendation}</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity style={styles.viewAllButton}>
+          <Text style={[styles.viewAllText, { color: colors.tint }]}>View All Insights</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
+
 
 function SummaryTab() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const screenWidth = Dimensions.get('window').width - 32; // Account for padding
 
   const stats = {
     upcomingEvents: mockCalendarEvents.length,
     highStressCount: mockStressInsights.filter(i => i.severity === 'high').length,
+    mediumStressCount: mockStressInsights.filter(i => i.severity === 'medium').length,
+    lowStressCount: mockStressInsights.filter(i => i.severity === 'low').length,
     nextEvent: mockCalendarEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0],
   };
 
-  // Calculate stress level distribution for doughnut chart
-  const stressLevels = {
-    low: mockStressInsights.filter(i => i.severity === 'low').length,
-    medium: mockStressInsights.filter(i => i.severity === 'medium').length,
-    high: mockStressInsights.filter(i => i.severity === 'high').length,
+  const getCurrentGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
-  const doughnutData = [
-    {
-      name: 'Low',
-      count: stressLevels.low || 1,
-      color: '#7C9A92', // Sage green - calming
-      legendFontColor: colors.text,
-      legendFontSize: 12,
-    },
-    {
-      name: 'Medium',
-      count: stressLevels.medium || 1,
-      color: '#9F91CC', // Soft lavender - gentle alert
-      legendFontColor: colors.text,
-      legendFontSize: 12,
-    },
-    {
-      name: 'High',
-      count: stressLevels.high || 1,
-      color: '#B5838D', // Muted rose - caring urgency
-      legendFontColor: colors.text,
-      legendFontSize: 12,
-    },
-  ];
-
-  // Prepare stress data for line chart
-  const stressData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      data: [3, 2, 4, 3, 5, 2, 1], // Mock stress levels (1-5)
-      color: (opacity = 1) => `rgba(81, 150, 244, ${opacity})`, // Optional
-      strokeWidth: 2 // Optional
-    }],
+  const getCurrentStressLevel = () => {
+    const total = stats.highStressCount + stats.mediumStressCount + stats.lowStressCount;
+    if (total === 0) return 'Unknown';
+    if (stats.highStressCount > stats.mediumStressCount && stats.highStressCount > stats.lowStressCount) return 'High';
+    if (stats.mediumStressCount > stats.lowStressCount) return 'Medium';
+    return 'Low';
   };
+
+  const getStressColor = (level: string) => {
+    switch (level) {
+      case 'High': return '#B5838D';
+      case 'Medium': return '#9F91CC';
+      case 'Low': return '#7C9A92';
+      default: return colors.tabIconDefault;
+    }
+  };
+
+  const getAIStressRecommendation = () => {
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const thisWeekEvents = mockCalendarEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= weekStart && eventDate <= weekEnd;
+    });
+
+    const todayEvents = mockCalendarEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.toDateString() === today.toDateString();
+    });
+
+    const eventCount = thisWeekEvents.length;
+    const todayEventCount = todayEvents.length;
+
+    if (eventCount >= 8) {
+      return {
+        title: "This week will be hectic!",
+        subtitle: "AI recommends extra self-care",
+        icon: "😰",
+        recommendations: [
+          "Take a 15-min break at 2:00 PM today",
+          "Schedule meditation before your 3:30 PM meeting"
+        ],
+        urgency: "high"
+      };
+    } else if (eventCount >= 5) {
+      return {
+        title: "Moderate schedule ahead",
+        subtitle: "AI suggests strategic breaks",
+        icon: "😌",
+        recommendations: [
+          "Take a 10-min walk at 1:30 PM",
+          "Block 30 minutes for lunch without meetings"
+        ],
+        urgency: "medium"
+      };
+    } else if (todayEventCount >= 3) {
+      return {
+        title: "Today looks busy",
+        subtitle: "AI recommends mindful pacing",
+        icon: "🧘",
+        recommendations: [
+          "Take 5 deep breaths before your 2:00 PM event",
+          "Schedule a 10-min break at 3:00 PM"
+        ],
+        urgency: "medium"
+      };
+    } else {
+      return {
+        title: "Light schedule today",
+        subtitle: "AI suggests wellness focus",
+        icon: "😊",
+        recommendations: [
+          "Use free time for a 20-min meditation",
+          "Plan something enjoyable for this evening"
+        ],
+        urgency: "low"
+      };
+    }
+  };
+
+  return (
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Welcome Card */}
+      <View style={[styles.welcomeCard, { backgroundColor: colors.background }]}>
+        <View style={styles.welcomeContent}>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{getCurrentGreeting()}</Text>
+          <Text style={[styles.welcomeSubtitle, { color: colors.text }]}>How are you feeling today?</Text>
+        </View>
+        <View style={[styles.welcomeIcon, { backgroundColor: colors.tint }]}>
+          <Text style={styles.welcomeEmoji}>🌱</Text>
+        </View>
+      </View>
+
+      {/* AI-Powered Stress Management Recommendation */}
+      {(() => {
+        const aiRecommendation = getAIStressRecommendation();
+        const urgencyColor = aiRecommendation.urgency === 'high' ? '#FF6B6B' :
+          aiRecommendation.urgency === 'medium' ? '#FFA726' : '#4CAF50';
+
+        return (
+          <View style={[styles.dailyStressReminderCard, { backgroundColor: colors.background }]}>
+            <View style={styles.dailyStressReminderHeader}>
+              <View style={[styles.dailyStressReminderIcon, { backgroundColor: urgencyColor }]}>
+                <Text style={styles.dailyStressReminderEmoji}>{aiRecommendation.icon}</Text>
+              </View>
+              <View style={styles.dailyStressReminderTitleContainer}>
+                <Text style={[styles.dailyStressReminderTitle, { color: colors.text }]}>
+                  {aiRecommendation.title}
+                </Text>
+                <Text style={[styles.dailyStressReminderSubtitle, { color: colors.text }]}>
+                  {aiRecommendation.subtitle}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.dailyStressTipsContainer}>
+              {aiRecommendation.recommendations.map((recommendation, index) => (
+                <View key={index} style={styles.dailyStressTipItem}>
+                  <Text style={[styles.dailyStressTipNumber, { color: urgencyColor }]}>{index + 1}</Text>
+                  <Text style={[styles.dailyStressTipText, { color: colors.text }]}>
+                    {recommendation}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity style={[styles.dailyStressReminderButton, { backgroundColor: urgencyColor }]}>
+              <Text style={styles.dailyStressReminderButtonText}>
+                {aiRecommendation.urgency === 'high' ? 'Start Emergency Calm Session' :
+                  aiRecommendation.urgency === 'medium' ? 'Begin Stress Relief' : 'Continue Wellness Journey'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })()}
+
+      {/* Quick Stats Grid */}
+      <View style={styles.statsGrid}>
+        <View style={[styles.statCard, { backgroundColor: colors.background }]}>
+          <View style={[styles.statIcon, { backgroundColor: colors.tint }]}>
+            <Text style={styles.statIconText}>📅</Text>
+          </View>
+          <Text style={[styles.statNumber, { color: colors.text }]}>{stats.upcomingEvents}</Text>
+          <Text style={[styles.statLabel, { color: colors.text }]}>Upcoming Events</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.background }]}>
+          <View style={[styles.statIcon, { backgroundColor: getStressColor(getCurrentStressLevel()) }]}>
+            <Text style={styles.statIconText}>💭</Text>
+          </View>
+          <Text style={[styles.statNumber, { color: getStressColor(getCurrentStressLevel()) }]}>
+            {getCurrentStressLevel()}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.text }]}>Current Stress</Text>
+        </View>
+      </View>
+
+      {/* Next Event Card */}
+      <View style={[styles.eventCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Next Event</Text>
+        <View style={styles.eventContent}>
+          <View style={[styles.eventIcon, { backgroundColor: colors.tint }]}>
+            <Text style={styles.eventIconText}>📅</Text>
+          </View>
+          <View style={styles.eventDetails}>
+            <Text style={[styles.eventTitle, { color: colors.text }]}>{stats.nextEvent.title}</Text>
+            <Text style={[styles.eventTime, { color: colors.text }]}>
+              {format(new Date(stats.nextEvent.date), 'MMM d, h:mm a')}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+
+    </ScrollView>
+  );
+};
+
+function StatisticsTab() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <ScrollView
@@ -134,24 +404,369 @@ function SummaryTab() {
       showsVerticalScrollIndicator={false}
     >
       <StressHeatmap />
-
-      <View style={[styles.summaryCard, { backgroundColor: colors.cardBackground }]}>
-        <Text style={styles.summaryTitle}>Today's Overview</Text>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Upcoming Events</Text>
-          <Text style={styles.summaryValue}>{stats.upcomingEvents}</Text>
-        </View>
-        <View style={styles.divider} />
-        <Text style={styles.summaryLabel}>Next Event</Text>
-        <Text style={styles.nextEventTitle}>{stats.nextEvent.title}</Text>
-        <Text style={styles.nextEventTime}>
-          {format(new Date(stats.nextEvent.date), 'h:mm a')}
-        </Text>
-      </View>
-
     </ScrollView>
   );
-};
+}
+
+function CalendarTab() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [showDayModal, setShowDayModal] = useState(false);
+
+  const getCurrentMonth = () => {
+    return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const getCurrentMonthShort = () => {
+    return new Date().toLocaleDateString('en-US', { month: 'short' });
+  };
+
+  const getCurrentYear = () => {
+    return new Date().getFullYear();
+  };
+
+  const getTodayInfo = () => {
+    const today = new Date();
+    return {
+      day: today.getDate(),
+      dayName: today.toLocaleDateString('en-US', { weekday: 'long' }),
+      month: today.toLocaleDateString('en-US', { month: 'long' }),
+      year: today.getFullYear()
+    };
+  };
+
+  const getDaysInMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day);
+    }
+
+    return days;
+  };
+
+  const getDayEvents = (day: number) => {
+    if (!day) return [];
+    return mockCalendarEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getDate() === day;
+    });
+  };
+
+  const getEventTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      exam: '#B5838D',
+      class: '#7C9A92',
+      bill: '#C6AC8F',
+      other: '#8E9CAA'
+    };
+    return colors[type] || '#8E9CAA';
+  };
+
+  const handleDayPress = (day: number) => {
+    setSelectedDay(day);
+    setShowDayModal(true);
+  };
+
+  const getSelectedDayEvents = () => {
+    if (!selectedDay) return [];
+    return getDayEvents(selectedDay);
+  };
+
+  const getSelectedDayDate = () => {
+    if (!selectedDay) return '';
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    return new Date(year, month, selectedDay);
+  };
+
+  const days = getDaysInMonth();
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const todayInfo = getTodayInfo();
+
+  return (
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Today's Highlight Card */}
+      <View style={[styles.todayCard, { backgroundColor: colors.background }]}>
+        <View style={styles.todayContent}>
+          <View style={styles.todayDate}>
+            <Text style={[styles.todayDayNumber, { color: colors.tint }]}>{todayInfo.day}</Text>
+            <View style={styles.todayMonthYear}>
+              <Text style={[styles.todayMonth, { color: colors.text }]}>{getCurrentMonthShort()}</Text>
+              <Text style={[styles.todayYear, { color: colors.text }]}>{todayInfo.year}</Text>
+            </View>
+          </View>
+          <View style={styles.todayInfo}>
+            <Text style={[styles.todayDayName, { color: colors.text }]}>{todayInfo.dayName}</Text>
+            <Text style={[styles.todaySubtext, { color: colors.text }]}>Today</Text>
+          </View>
+        </View>
+        <View style={[styles.todayIcon, { backgroundColor: colors.tint }]}>
+          <Text style={styles.todayEmoji}>📅</Text>
+        </View>
+      </View>
+
+
+      {/* Calendar Grid */}
+      <View style={[styles.calendarCard, { backgroundColor: colors.background }]}>
+        {/* Week day headers */}
+        <View style={styles.weekDaysRow}>
+          {weekDays.map((day) => (
+            <Text key={day} style={[styles.weekDay, { color: colors.text }]}>{day}</Text>
+          ))}
+        </View>
+
+        {/* Calendar grid */}
+        <View style={styles.calendarGrid}>
+          {days.map((day, index) => {
+            const dayEvents = day ? getDayEvents(day) : [];
+            const isToday = day === new Date().getDate();
+            const isWeekend = index % 7 === 0 || index % 7 === 6; // Sunday or Saturday
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.calendarDay,
+                  day ? styles.clickableDay : null,
+                  isToday ? styles.todayDay : null,
+                  isWeekend && day ? styles.weekendDay : null
+                ]}
+                onPress={() => day && handleDayPress(day)}
+                disabled={!day}
+                activeOpacity={day ? 0.7 : 1}
+              >
+                {day && (
+                  <>
+                    <Text style={[
+                      styles.dayNumber,
+                      { color: colors.text },
+                      isToday && { color: '#fc212f', fontWeight: '800', fontSize: 18 },
+                      isWeekend && !isToday && { opacity: 0.7 }
+                    ]}>
+                      {day}
+                    </Text>
+                    {dayEvents.length > 0 && (
+                      <View style={styles.dayEvents}>
+                        {dayEvents.slice(0, 3).map((event, eventIndex) => (
+                          <View
+                            key={eventIndex}
+                            style={[
+                              styles.eventDot,
+                              { backgroundColor: getEventTypeColor(event.type) }
+                            ]}
+                          />
+                        ))}
+                        {dayEvents.length > 3 && (
+                          <Text style={[styles.moreEvents, { color: colors.text }]}>
+                            +{dayEvents.length - 3}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Quick Stats */}
+      <View style={[styles.quickStatsCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.quickStatsTitle, { color: colors.text }]}>This Week</Text>
+        <View style={styles.quickStatsGrid}>
+          <View style={styles.quickStatItem}>
+            <View style={[styles.quickStatIcon, { backgroundColor: colors.tint }]}>
+              <Text style={styles.quickStatEmoji}>📅</Text>
+            </View>
+            <Text style={[styles.quickStatNumber, { color: colors.text }]}>
+              {mockCalendarEvents.filter(event => {
+                const eventDate = new Date(event.date);
+                const today = new Date();
+                const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                return eventDate >= weekStart && eventDate <= weekEnd;
+              }).length}
+            </Text>
+            <Text style={[styles.quickStatLabel, { color: colors.text }]}>Events</Text>
+          </View>
+          <View style={styles.quickStatItem}>
+            <View style={[styles.quickStatIcon, { backgroundColor: '#7C9A92' }]}>
+              <Text style={styles.quickStatEmoji}>🎯</Text>
+            </View>
+            <Text style={[styles.quickStatNumber, { color: colors.text }]}>3</Text>
+            <Text style={[styles.quickStatLabel, { color: colors.text }]}>Goals</Text>
+          </View>
+          <View style={styles.quickStatItem}>
+            <View style={[styles.quickStatIcon, { backgroundColor: '#9F91CC' }]}>
+              <Text style={styles.quickStatEmoji}>⏰</Text>
+            </View>
+            <Text style={[styles.quickStatNumber, { color: colors.text }]}>2h</Text>
+            <Text style={[styles.quickStatLabel, { color: colors.text }]}>Free Time</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Upcoming Events List */}
+      <View style={[styles.upcomingEventsCard, { backgroundColor: colors.background }]}>
+        <View style={styles.upcomingEventsHeader}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Upcoming Events</Text>
+          <TouchableOpacity style={styles.viewAllButton}>
+            <Text style={[styles.viewAllText, { color: colors.tint }]}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        {mockCalendarEvents
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 4)
+          .map((event) => (
+            <TouchableOpacity key={event.id} style={styles.eventListItem} activeOpacity={0.7}>
+              <View style={[styles.eventListIcon, { backgroundColor: getEventTypeColor(event.type) }]}>
+                <Text style={styles.eventListIconText}>📅</Text>
+              </View>
+              <View style={styles.eventListDetails}>
+                <Text style={[styles.eventListTitle, { color: colors.text }]}>{event.title}</Text>
+                <Text style={[styles.eventListTime, { color: colors.text }]}>
+                  {format(new Date(event.date), 'MMM d, h:mm a')}
+                </Text>
+                <View style={[styles.eventListType, { backgroundColor: getEventTypeColor(event.type) + '20' }]}>
+                  <Text style={[styles.eventListTypeText, { color: getEventTypeColor(event.type) }]}>
+                    {event.type.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+      </View>
+
+      {/* Day Details Modal */}
+      <Modal
+        visible={showDayModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDayModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.dayModal, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {selectedDay && format(getSelectedDayDate(), 'EEEE, MMMM d, yyyy')}
+              </Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowDayModal(false)}
+              >
+                <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent}>
+              {getSelectedDayEvents().length > 0 ? (
+                getSelectedDayEvents().map((event) => (
+                  <View key={event.id} style={styles.modalEventItem}>
+                    <View style={[styles.modalEventIcon, { backgroundColor: getEventTypeColor(event.type) }]}>
+                      <Text style={styles.modalEventIconText}>📅</Text>
+                    </View>
+                    <View style={styles.modalEventDetails}>
+                      <Text style={[styles.modalEventTitle, { color: colors.text }]}>{event.title}</Text>
+                      <Text style={[styles.modalEventTime, { color: colors.text }]}>
+                        {format(new Date(event.date), 'h:mm a')}
+                      </Text>
+                      <Text style={[styles.modalEventDescription, { color: colors.text }]}>
+                        {event.description}
+                      </Text>
+                      <View style={[styles.modalEventType, { backgroundColor: getEventTypeColor(event.type) }]}>
+                        <Text style={styles.modalEventTypeText}>{event.type.toUpperCase()}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.noEventsContainer}>
+                  <Text style={[styles.noEventsText, { color: colors.text }]}>
+                    No events scheduled for this day
+                  </Text>
+                  <Text style={[styles.noEventsSubtext, { color: colors.text }]}>
+                    Tap the + button to add an event
+                  </Text>
+                </View>
+              )}
+
+              {/* Stress Management Reminder */}
+              {getSelectedDayEvents().length > 0 && (
+                <View style={[styles.stressReminderCard, { backgroundColor: colors.cardBackground }]}>
+                  <View style={styles.stressReminderHeader}>
+                    <View style={[styles.stressReminderIcon, { backgroundColor: '#FF6B6B' }]}>
+                      <Text style={styles.stressReminderEmoji}>🧘</Text>
+                    </View>
+                    <Text style={[styles.stressReminderTitle, { color: colors.text }]}>
+                      Stress Management Reminder
+                    </Text>
+                  </View>
+                  <Text style={[styles.stressReminderText, { color: colors.text }]}>
+                    You have {getSelectedDayEvents().length} event{getSelectedDayEvents().length > 1 ? 's' : ''} scheduled today.
+                    Consider these stress management techniques:
+                  </Text>
+                  <View style={styles.stressTipsList}>
+                    <View style={styles.stressTipItem}>
+                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
+                      <Text style={[styles.stressTipText, { color: colors.text }]}>
+                        Take 5-10 minutes to breathe deeply before each event
+                      </Text>
+                    </View>
+                    <View style={styles.stressTipItem}>
+                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
+                      <Text style={[styles.stressTipText, { color: colors.text }]}>
+                        Prepare materials and notes in advance
+                      </Text>
+                    </View>
+                    <View style={styles.stressTipItem}>
+                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
+                      <Text style={[styles.stressTipText, { color: colors.text }]}>
+                        Take short breaks between events if possible
+                      </Text>
+                    </View>
+                    <View style={styles.stressTipItem}>
+                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
+                      <Text style={[styles.stressTipText, { color: colors.text }]}>
+                        Stay hydrated and have healthy snacks ready
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity style={[styles.stressReminderButton, { backgroundColor: colors.tint }]}>
+                    <Text style={styles.stressReminderButtonText}>Open Wellness Toolkit</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+}
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -172,21 +787,13 @@ export default function DashboardScreen() {
         }}>
         <Tab.Screen name="Summary" component={SummaryTab} />
         <Tab.Screen name="Insights" component={InsightsTab} />
-        <Tab.Screen name="Upcoming" component={UpcomingTab} />
+        <Tab.Screen name="Statistics" component={StatisticsTab} />
+        <Tab.Screen name="Calendar" component={CalendarTab} />
       </Tab.Navigator>
     </View>
   );
 }
 
-const getEventTypeColor = (type: CalendarEvent['type']) => {
-  const colors: Record<CalendarEvent['type'], string> = {
-    exam: '#B5838D', // Muted rose - gentle urgency
-    class: '#7C9A92', // Sage green - growth and learning
-    bill: '#C6AC8F', // Warm sand - grounding
-    other: '#8E9CAA'  // Muted blue-grey - neutral
-  };
-  return colors[type];
-};
 
 const getInsightSeverityColor = (severity: StressInsight['severity']) => {
   const colors: Record<StressInsight['severity'], string> = {
@@ -233,46 +840,6 @@ const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
     padding: 16,
-  },
-  eventCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    flex: 1,
-  },
-  eventDate: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  eventDescription: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  eventType: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  eventTypeText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '600',
   },
   insightCard: {
     borderRadius: 12,
@@ -329,4 +896,855 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 2,
   },
+
+  // Welcome Card
+  welcomeCard: {
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  welcomeContent: {
+    flex: 1,
+  },
+  welcomeTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    fontWeight: '500',
+  },
+  welcomeIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  welcomeEmoji: {
+    fontSize: 28,
+  },
+
+  // Stats Grid
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statIconText: {
+    fontSize: 18,
+  },
+  statNumber: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  statLabel: {
+    fontSize: 13,
+    opacity: 0.7,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+
+  // Event Card
+  eventCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    letterSpacing: 0.3,
+  },
+  eventContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  eventIconText: {
+    fontSize: 24,
+  },
+  eventDetails: {
+    flex: 1,
+  },
+  eventTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  eventTime: {
+    fontSize: 15,
+    opacity: 0.7,
+    fontWeight: '500',
+  },
+
+  // Insights Card
+  insightsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  insightsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+  },
+  insightItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  insightDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  insightCount: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  insightLabel: {
+    fontSize: 13,
+    opacity: 0.7,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Enhanced Calendar Styles
+  todayCard: {
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 80,
+  },
+  todayContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  todayDate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  todayDayNumber: {
+    fontSize: 32,
+    fontWeight: '800',
+    marginRight: 12,
+    minWidth: 30,
+  },
+  todayMonthYear: {
+    alignItems: 'flex-start',
+    minWidth: 60,
+  },
+  todayMonth: {
+    fontSize: 16,
+    fontWeight: '600',
+    opacity: 0.9,
+  },
+  todayYear: {
+    fontSize: 14,
+    opacity: 0.8,
+  },
+  todayInfo: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  todayDayName: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  todaySubtext: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  todayIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  todayEmoji: {
+    fontSize: 28,
+  },
+  calendarCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  weekDaysRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  weekDay: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '600',
+    opacity: 0.7,
+    marginBottom: 8,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calendarDay: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 6,
+    marginBottom: 4,
+  },
+  clickableDay: {
+    borderRadius: 6,
+  },
+  todayDay: {
+    backgroundColor: '#B5838D',
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 0.5,
+    borderWidth: 2,
+    borderColor: '#fc212f',
+  },
+  weekendDay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+  },
+  dayNumber: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  dayEvents: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  eventDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 1,
+    marginVertical: 1,
+  },
+  moreEvents: {
+    fontSize: 8,
+    fontWeight: '600',
+    marginLeft: 2,
+  },
+  quickStatsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  quickStatsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+    letterSpacing: 0.3,
+  },
+  quickStatsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  quickStatItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  quickStatIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickStatEmoji: {
+    fontSize: 20,
+  },
+  quickStatNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  quickStatLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  upcomingEventsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  upcomingEventsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  eventListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  eventListIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  eventListIconText: {
+    fontSize: 20,
+  },
+  eventListDetails: {
+    flex: 1,
+  },
+  eventListTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  eventListTime: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 8,
+  },
+  eventListType: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  eventListTypeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  dayModal: {
+    width: '100%',
+    maxHeight: '80%',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalContent: {
+    maxHeight: 400,
+    padding: 20,
+  },
+  modalEventItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  modalEventIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  modalEventIconText: {
+    fontSize: 20,
+  },
+  modalEventDetails: {
+    flex: 1,
+  },
+  modalEventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  modalEventTime: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 8,
+  },
+  modalEventDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  modalEventType: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  modalEventTypeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  noEventsContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  noEventsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  noEventsSubtext: {
+    fontSize: 14,
+    opacity: 0.7,
+    textAlign: 'center',
+  },
+
+  // Enhanced Insights Styles
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    letterSpacing: 0.3,
+  },
+  insightsOverviewCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  insightsStatsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  insightStatItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  insightStatNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  insightStatLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  trendCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  trendContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trendIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  trendEmoji: {
+    fontSize: 28,
+  },
+  trendDetails: {
+    flex: 1,
+  },
+  trendText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  trendSubtext: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  patternsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  patternItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  patternInfo: {
+    flex: 1,
+  },
+  patternName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  patternFrequency: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  patternSeverity: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  patternSeverityText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  tipsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  tipsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  tipItem: {
+    width: '48%',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+  },
+  tipIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  tipEmoji: {
+    fontSize: 24,
+  },
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  tipDescription: {
+    fontSize: 12,
+    opacity: 0.7,
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  tipCategory: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  tipCategoryText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  recentInsightsCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  viewAllButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Stress Management Reminder Styles
+  stressReminderCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 20,
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  stressReminderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  stressReminderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  stressReminderEmoji: {
+    fontSize: 20,
+  },
+  stressReminderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  stressReminderText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 16,
+    opacity: 0.8,
+  },
+  stressTipsList: {
+    marginBottom: 20,
+  },
+  stressTipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  stressTipBullet: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  stressTipText: {
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+    opacity: 0.9,
+  },
+  stressReminderButton: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  stressReminderButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Daily Stress Management Reminder Styles (Summary Tab)
+  dailyStressReminderCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dailyStressReminderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dailyStressReminderIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  dailyStressReminderEmoji: {
+    fontSize: 18,
+  },
+  dailyStressReminderTitleContainer: {
+    flex: 1,
+  },
+  dailyStressReminderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  dailyStressReminderSubtitle: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  dailyStressTipsContainer: {
+    marginBottom: 14,
+  },
+  dailyStressTipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  dailyStressTipNumber: {
+    fontSize: 12,
+    fontWeight: '700',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginRight: 8,
+    marginTop: 1,
+  },
+  dailyStressTipText: {
+    fontSize: 12,
+    lineHeight: 16,
+    flex: 1,
+    opacity: 0.9,
+  },
+  dailyStressReminderButton: {
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  dailyStressReminderButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
 });
