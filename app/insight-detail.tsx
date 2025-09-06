@@ -76,7 +76,7 @@ function InsightDetailContent() {
                     <View style={styles.actionItem}>
                         <Text style={styles.actionTitle}>2. Try a Wellness Activity</Text>
                         <Text style={styles.actionDescription}>
-                            Check the toolkit for stress-reducing exercises and activities.
+                            Check the AI Plan for stress-reducing exercises and activities.
                         </Text>
                     </View>
                     <View style={styles.actionItem}>

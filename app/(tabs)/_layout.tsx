@@ -42,13 +42,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="toolkit"
-        options={{
-          title: 'Toolkit',
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'wand-sparkles' }} size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="calendar"
         options={{
           title: 'Calendar',

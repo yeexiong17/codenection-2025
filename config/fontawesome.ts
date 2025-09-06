@@ -17,14 +17,12 @@ import {
     faSquare,
     faStop,
     faUser,
-    faWandSparkles,
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add icons to the library
 library.add(
     faChartBar,
     faBrain,
-    faWandSparkles,
     faGear,
     faBell,
     faCalendar,

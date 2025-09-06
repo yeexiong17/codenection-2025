@@ -14,12 +14,17 @@ export interface StressInsight {
     recommendation: string;
 }
 
-export interface ToolkitItem {
+
+export interface AIRecommendation {
     id: string;
+    time: string;
     title: string;
     description: string;
-    type: 'breathing' | 'journal' | 'exercise' | 'meditation';
+    category: 'wellness' | 'productivity' | 'mindfulness' | 'social' | 'health';
+    priority: 'high' | 'medium' | 'low';
     duration: string;
+    icon: string;
+    completed?: boolean;
 }
 
 export interface CalendarSource {
@@ -135,35 +140,138 @@ export const mockStressInsights: StressInsight[] = [
     }
 ];
 
-export const mockToolkitItems: ToolkitItem[] = [
+
+export const mockAIRecommendations: AIRecommendation[] = [
     {
         id: '1',
-        title: 'Deep Breathing',
-        description: 'Simple breathing exercise to reduce stress and anxiety',
-        type: 'breathing',
-        duration: '5 min'
+        time: '07:00',
+        title: 'Morning Meditation',
+        description: 'Start your day with 10 minutes of mindfulness meditation to set a positive tone',
+        category: 'mindfulness',
+        priority: 'high',
+        duration: '10 min',
+        icon: '🧘‍♀️',
     },
     {
         id: '2',
-        title: 'Gratitude Journal',
-        description: 'Write down three things you\'re grateful for today',
-        type: 'journal',
-        duration: '10 min'
+        time: '07:30',
+        title: 'Hydration Check',
+        description: 'Drink a glass of water to rehydrate after sleep and boost your metabolism',
+        category: 'health',
+        priority: 'medium',
+        duration: '2 min',
+        icon: '💧',
     },
     {
         id: '3',
-        title: 'Desk Stretches',
-        description: 'Quick stretches you can do at your desk',
-        type: 'exercise',
-        duration: '7 min'
+        time: '08:00',
+        title: 'Healthy Breakfast',
+        description: 'Prepare a nutritious breakfast with protein and fiber to fuel your day',
+        category: 'health',
+        priority: 'high',
+        duration: '15 min',
+        icon: '🥗',
     },
     {
         id: '4',
-        title: 'Guided Meditation',
-        description: 'Short meditation for focus and clarity',
-        type: 'meditation',
-        duration: '10 min'
-    }
+        time: '09:00',
+        title: 'Work Planning',
+        description: 'Review your schedule and prioritize tasks for maximum productivity',
+        category: 'productivity',
+        priority: 'high',
+        duration: '10 min',
+        icon: '📋',
+    },
+    {
+        id: '5',
+        time: '10:30',
+        title: 'Movement Break',
+        description: 'Take a 5-minute stretch break to prevent stiffness and improve focus',
+        category: 'wellness',
+        priority: 'medium',
+        duration: '5 min',
+        icon: '🤸‍♀️',
+    },
+    {
+        id: '6',
+        time: '12:00',
+        title: 'Mindful Lunch',
+        description: 'Eat lunch away from your desk and practice mindful eating',
+        category: 'mindfulness',
+        priority: 'medium',
+        duration: '30 min',
+        icon: '🍽️',
+    },
+    {
+        id: '7',
+        time: '14:00',
+        title: 'Deep Breathing',
+        description: 'Practice 4-7-8 breathing technique to reduce afternoon stress',
+        category: 'wellness',
+        priority: 'high',
+        duration: '5 min',
+        icon: '🫁',
+    },
+    {
+        id: '8',
+        time: '15:30',
+        title: 'Social Connection',
+        description: 'Reach out to a friend or family member for a quick check-in',
+        category: 'social',
+        priority: 'low',
+        duration: '10 min',
+        icon: '💬',
+    },
+    {
+        id: '9',
+        time: '17:00',
+        title: 'Work Wrap-up',
+        description: 'Review your accomplishments and plan for tomorrow',
+        category: 'productivity',
+        priority: 'medium',
+        duration: '10 min',
+        icon: '✅',
+    },
+    {
+        id: '10',
+        time: '18:30',
+        title: 'Evening Walk',
+        description: 'Take a 20-minute walk to unwind and get some fresh air',
+        category: 'wellness',
+        priority: 'medium',
+        duration: '20 min',
+        icon: '🚶‍♀️',
+    },
+    {
+        id: '11',
+        time: '19:30',
+        title: 'Gratitude Practice',
+        description: 'Write down three things you\'re grateful for today',
+        category: 'mindfulness',
+        priority: 'high',
+        duration: '5 min',
+        icon: '📝',
+    },
+    {
+        id: '12',
+        time: '21:00',
+        title: 'Digital Detox',
+        description: 'Put away devices and engage in a relaxing activity',
+        category: 'wellness',
+        priority: 'medium',
+        duration: '30 min',
+        icon: '📱',
+    },
+    {
+        id: '13',
+        time: '22:00',
+        title: 'Bedtime Routine',
+        description: 'Start your wind-down routine with calming activities',
+        category: 'wellness',
+        priority: 'high',
+        duration: '30 min',
+        icon: '🌙',
+    },
 ];
 
 export const mockAIResponses = {
@@ -179,7 +287,7 @@ export const mockAIResponses = {
         },
         {
             trigger: ['sleep', 'tired', 'rest'],
-            response: "Getting good sleep is crucial for mental wellness. Have you tried the guided meditation in our toolkit? It can help you wind down."
+            response: "Getting good sleep is crucial for mental wellness. Have you tried the guided meditation in our AI Plan? It can help you wind down."
         }
     ]
 };

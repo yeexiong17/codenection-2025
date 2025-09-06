@@ -9,7 +9,7 @@ import { StressHeatmap } from '@/components/StressHeatmap';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { ThemedView as View } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { mockCalendarEvents, mockStressInsights, StressInsight } from '@/constants/MockData';
+import { mockAIRecommendations, mockCalendarEvents, mockStressInsights, StressInsight } from '@/constants/MockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 function InsightsTab() {
@@ -183,6 +183,12 @@ function InsightsTab() {
         <TouchableOpacity style={styles.viewAllButton}>
           <Text style={[styles.viewAllText, { color: colors.tint }]}>View All Insights</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Stress Heatmap - moved from Statistics tab */}
+      <View style={[styles.stressHeatmapCard, { backgroundColor: colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Stress Patterns</Text>
+        <StressHeatmap />
       </View>
     </ScrollView>
   );
@@ -393,9 +399,58 @@ function SummaryTab() {
   );
 };
 
-function StatisticsTab() {
+
+function AIRecommendationsTab() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      wellness: '#4CAF50',
+      productivity: '#2196F3',
+      mindfulness: '#9C27B0',
+      social: '#FF9800',
+      health: '#F44336',
+    };
+    return colors[category] || colors.wellness;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors: Record<string, string> = {
+      high: '#FF6B6B',
+      medium: '#FFA726',
+      low: '#4CAF50',
+    };
+    return colors[priority] || colors.medium;
+  };
+
+  const toggleCompletion = (id: string) => {
+    setCompletedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const getCurrentTimeRecommendation = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+
+    return mockAIRecommendations.find(rec => {
+      const [hour, minute] = rec.time.split(':').map(Number);
+      const recTime = hour * 60 + minute;
+      return Math.abs(recTime - currentTime) <= 30; // Within 30 minutes
+    });
+  };
+
+  const currentRecommendation = getCurrentTimeRecommendation();
 
   return (
     <ScrollView
@@ -403,7 +458,124 @@ function StatisticsTab() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      <StressHeatmap />
+      {/* Compact Progress Summary */}
+      <View style={[styles.progressCard, { backgroundColor: colors.background }]}>
+        <View style={styles.progressHeader}>
+          <Text style={[styles.progressTitle, { color: colors.text }]}>Today's Progress</Text>
+          <Text style={[styles.progressPercentage, { color: colors.tint }]}>
+            {Math.round((completedItems.size / mockAIRecommendations.length) * 100)}%
+          </Text>
+        </View>
+
+        <View style={[styles.progressBarContainer, { backgroundColor: colors.cardBackground }]}>
+          <View
+            style={[
+              styles.progressBar,
+              {
+                width: `${(completedItems.size / mockAIRecommendations.length) * 100}%`,
+                backgroundColor: colors.tint
+              }
+            ]}
+          />
+        </View>
+
+        <Text style={[styles.progressDetailText, { color: colors.text }]}>
+          {completedItems.size} of {mockAIRecommendations.length} activities completed
+        </Text>
+      </View>
+
+
+
+      {/* Timeline */}
+      <View style={[styles.timelineCard, { backgroundColor: colors.background }]}>
+        <View style={styles.timelineHeader}>
+          <Text style={[styles.timelineTitle, { color: colors.text }]}>
+            Your Daily Wellness Timeline
+          </Text>
+          <View style={[styles.timelineIcon, { backgroundColor: colors.tint }]}>
+            <Text style={styles.timelineIconText}>⏰</Text>
+          </View>
+        </View>
+
+        <View style={styles.timelineContainer}>
+          {mockAIRecommendations.map((recommendation, index) => {
+            const isCompleted = completedItems.has(recommendation.id);
+            const isLast = index === mockAIRecommendations.length - 1;
+
+            return (
+              <View key={recommendation.id} style={styles.timelineItem}>
+                <View style={styles.timelineLeft}>
+                  <View style={[
+                    styles.timelineDot,
+                    { backgroundColor: isCompleted ? '#4CAF50' : getCategoryColor(recommendation.category) }
+                  ]}>
+                    <Text style={styles.timelineDotIcon}>{recommendation.icon}</Text>
+                  </View>
+                  {!isLast && (
+                    <View style={[styles.timelineLine, { backgroundColor: colors.tabIconDefault }]} />
+                  )}
+                </View>
+
+                <View style={styles.timelineContent}>
+                  <TouchableOpacity
+                    style={[
+                      styles.recommendationCard,
+                      { backgroundColor: isCompleted ? '#E8F5E8' : colors.cardBackground },
+                      isCompleted && { opacity: 0.7 }
+                    ]}
+                    onPress={() => toggleCompletion(recommendation.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.recommendationHeader}>
+                      <View style={styles.recommendationTimeContainer}>
+                        <Text style={[styles.recommendationTime, { color: colors.text }]}>
+                          {recommendation.time}
+                        </Text>
+                        <View style={[
+                          styles.priorityIndicator,
+                          { backgroundColor: getPriorityColor(recommendation.priority) }
+                        ]} />
+                      </View>
+                      <View style={[
+                        styles.categoryBadge,
+                        { backgroundColor: getCategoryColor(recommendation.category) + '20' }
+                      ]}>
+                        <Text style={[
+                          styles.categoryBadgeText,
+                          { color: getCategoryColor(recommendation.category) }
+                        ]}>
+                          {recommendation.category.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={[
+                      styles.recommendationTitle,
+                      { color: colors.text },
+                      isCompleted && { textDecorationLine: 'line-through' }
+                    ]}>
+                      {recommendation.title}
+                    </Text>
+
+                    <Text style={[styles.recommendationDescription, { color: colors.text }]}>
+                      {recommendation.description}
+                    </Text>
+
+                    <View style={styles.recommendationFooter}>
+                      <Text style={[styles.recommendationDuration, { color: colors.text }]}>
+                        ⏱️ {recommendation.duration}
+                      </Text>
+                      {isCompleted && (
+                        <Text style={styles.completedText}>✓ Completed</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -756,7 +928,7 @@ function CalendarTab() {
                     </View>
                   </View>
                   <TouchableOpacity style={[styles.stressReminderButton, { backgroundColor: colors.tint }]}>
-                    <Text style={styles.stressReminderButtonText}>Open Wellness Toolkit</Text>
+                    <Text style={styles.stressReminderButtonText}>Open AI Plan</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -787,7 +959,7 @@ export default function DashboardScreen() {
         }}>
         <Tab.Screen name="Summary" component={SummaryTab} />
         <Tab.Screen name="Insights" component={InsightsTab} />
-        <Tab.Screen name="Statistics" component={StatisticsTab} />
+        <Tab.Screen name="AI Plan" component={AIRecommendationsTab} />
         <Tab.Screen name="Calendar" component={CalendarTab} />
       </Tab.Navigator>
     </View>
@@ -1598,6 +1770,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  stressHeatmapCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
 
   // Stress Management Reminder Styles
   stressReminderCard: {
@@ -1745,6 +1927,184 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+
+
+
+  // Compact Timeline Styles
+  timelineCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  timelineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  timelineTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    flex: 1,
+  },
+  timelineIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timelineIconText: {
+    fontSize: 16,
+  },
+  timelineContainer: {
+    paddingLeft: 6,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  timelineLeft: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 32,
+  },
+  timelineDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  timelineDotIcon: {
+    fontSize: 14,
+  },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    marginTop: 6,
+  },
+  timelineContent: {
+    flex: 1,
+  },
+  recommendationCard: {
+    borderRadius: 10,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  recommendationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  recommendationTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recommendationTime: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginRight: 6,
+  },
+  priorityIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  categoryBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  categoryBadgeText: {
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  recommendationTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  recommendationDescription: {
+    fontSize: 12,
+    lineHeight: 16,
+    opacity: 0.8,
+    marginBottom: 8,
+  },
+  recommendationFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recommendationDuration: {
+    fontSize: 11,
+    opacity: 0.7,
+  },
+  completedText: {
+    fontSize: 11,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+
+  // Compact Progress Summary Styles
+  progressCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  progressPercentage: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  progressBarContainer: {
+    height: 6,
+    borderRadius: 3,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressDetailText: {
+    fontSize: 13,
+    opacity: 0.7,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 
 });
