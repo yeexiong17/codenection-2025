@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mental-wellness-app",
-    "slug": "mental-wellness-app",
+    "name": "Mind Ease",
+    "slug": "mind-ease",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mentalwellnessapp",
+    "scheme": "mindease",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.yeexiong.mindease"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3c40fc0e-bbac-4b52-8be3-11a7e12de38c"
+      }
     }
   }
 }
