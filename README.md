@@ -63,7 +63,6 @@ For quick testing on Android, use the provided APK link above.
 ## Privacy & Safety
 - Journaling and AI features are designed for wellness support and are not a substitute for professional care. For emergencies, contact local emergency services or trusted hotlines.
 
-## License
-This project is licensed under the MIT License.
-
-
+## Team Members
+- Lim Chun Rong
+- Wong Yee Xiong
