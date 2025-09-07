@@ -117,7 +117,7 @@ export default function AICompanionScreen() {
 
     const getCompanionResponse = (text: string, companion: AICompanion): string => {
         const lowercaseText = text.toLowerCase();
-        
+
         // Personality-based responses
         if (companion.id === '1') { // Luna - Wise & Calming
             if (lowercaseText.includes('stress') || lowercaseText.includes('anxious') || lowercaseText.includes('worried')) {
@@ -131,7 +131,7 @@ export default function AICompanionScreen() {
             }
             return "I'm here to hold space for whatever you're experiencing. Sometimes the most profound healing happens in the quiet moments between words. How can I support you today?";
         }
-        
+
         if (companion.id === '2') { // Zara - Energetic & Motivational
             if (lowercaseText.includes('tired') || lowercaseText.includes('exhausted')) {
                 return "I hear you, but let's turn that energy around! 💪 Sometimes we need to push through the tiredness to find our second wind. What's one small action you can take right now to feel more energized?";
@@ -144,7 +144,7 @@ export default function AICompanionScreen() {
             }
             return "You're amazing and capable of incredible things! 🌟 Every day is a chance to grow and become even more awesome. What exciting thing are we going to accomplish today?";
         }
-        
+
         if (companion.id === '3') { // Sage - Analytical & Thoughtful
             if (lowercaseText.includes('decision') || lowercaseText.includes('choose') || lowercaseText.includes('decide')) {
                 return "Let's approach this systematically. What are the key factors you need to consider? Let's list the pros and cons, weigh the risks and benefits, and find the most logical path forward.";
@@ -157,7 +157,7 @@ export default function AICompanionScreen() {
             }
             return "I appreciate your thoughtful approach to this. Let's examine the situation from multiple angles to find the most effective solution. What's the first aspect you'd like to explore?";
         }
-        
+
         if (companion.id === '4') { // Aria - Creative & Inspiring
             if (lowercaseText.includes('creative') || lowercaseText.includes('art') || lowercaseText.includes('design')) {
                 return "Creativity flows through you like a river! 🎨 Let's explore the endless possibilities. What if we approached this from a completely different angle? What colors, shapes, or metaphors come to mind?";
@@ -170,7 +170,7 @@ export default function AICompanionScreen() {
             }
             return "Your imagination is a powerful force! ✨ Let's explore the wonderful world of possibilities together. What dreams are calling to you today?";
         }
-        
+
         // Default responses for custom companions
         return `I understand what you're saying. As your AI companion, I'm here to support you. Can you tell me more about how you're feeling?`;
     };
@@ -205,7 +205,7 @@ export default function AICompanionScreen() {
     const handleCompanionSelect = (companion: AICompanion) => {
         setSelectedCompanion(companion);
         setShowCompanionSelector(false);
-        
+
         // Clear messages and start fresh with new companion
         setMessages([{
             id: '0',
@@ -221,13 +221,13 @@ export default function AICompanionScreen() {
             ...companionData,
             id: Date.now().toString(),
         };
-        
+
         setCustomCompanions(prev => [...prev, newCompanion]);
         setShowAddCompanion(false);
-        
+
         // Switch to the new companion
         handleCompanionSelect(newCompanion);
-        
+
         Alert.alert('Success', 'Your new AI companion has been created!');
     };
 
@@ -236,7 +236,7 @@ export default function AICompanionScreen() {
             {item.isUser ? (
                 <View style={styles.userMessageContainer}>
                     <View style={[
-                        styles.userMessageContent, 
+                        styles.userMessageContent,
                         { backgroundColor: selectedCompanion?.color || colors.tint }
                     ]}>
                         <Text style={[styles.messageText, styles.userMessageText]}>
@@ -257,7 +257,7 @@ export default function AICompanionScreen() {
                             <Text style={styles.avatarText}>{selectedCompanion.avatar}</Text>
                         </View>
                     )}
-                    <View style={[styles.aiMessageContent, { backgroundColor: colors.cardBackground }]}>
+                    <View style={[styles.aiMessageContent, { backgroundColor: colorScheme === 'dark' ? '#3B3956' : '#EFF2F0' }]}>
                         <Text style={[styles.messageText, { color: colors.text }]}>
                             {item.text}
                         </Text>
@@ -276,18 +276,29 @@ export default function AICompanionScreen() {
             style={[
                 styles.companionCard,
                 { backgroundColor: colors.cardBackground },
+                { borderColor: 'rgba(0,0,0,0.06)', borderWidth: 1 },
                 selectedCompanion?.id === companion.id && { borderColor: companion.color, borderWidth: 2 }
             ]}
             onPress={() => handleCompanionSelect(companion)}
-            activeOpacity={0.7}
+            activeOpacity={0.85}
         >
-            <View style={[styles.companionAvatar, { backgroundColor: companion.color + '20' }]}>
+            <View style={[styles.companionCardAvatar, { backgroundColor: companion.color + '20' }]}>
                 <Text style={styles.companionAvatarText}>{companion.avatar}</Text>
             </View>
             <View style={styles.companionInfo}>
                 <Text style={[styles.companionName, { color: colors.text }]}>{companion.name}</Text>
-                <Text style={[styles.companionPersonality, { color: companion.color }]}>{companion.personality}</Text>
-                <Text style={[styles.companionDescription, { color: colors.tabIconDefault }]} numberOfLines={2}>
+                <View style={styles.personalityPillsRow}>
+                    {companion.personality
+                        .split(/[,&]/)
+                        .map(p => p.trim())
+                        .filter(Boolean)
+                        .map((pill) => (
+                            <View key={pill} style={[styles.personalityPill, { backgroundColor: companion.color + '1A' }]}>
+                                <Text style={[styles.personalityPillText, { color: companion.color }]}>{pill}</Text>
+                            </View>
+                        ))}
+                </View>
+                <Text style={[styles.companionDescription, { color: colors.tabIconDefault }]} numberOfLines={3}>
                     {companion.description}
                 </Text>
             </View>
@@ -296,11 +307,11 @@ export default function AICompanionScreen() {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
             <PageHeader title="AI Companions" />
-            
+
             {/* Companion Selector */}
             <View style={styles.companionSelector}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.companionScroll}>
@@ -534,40 +545,61 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     companionCard: {
-        width: 140,
-        marginRight: 12,
+        width: 200,
+        marginRight: 10,
         padding: 12,
         borderRadius: 12,
         alignItems: 'center',
+        justifyContent: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.12,
         shadowRadius: 4,
         elevation: 3,
     },
-    companionAvatar: {
+    companionCardAvatar: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     companionAvatarText: {
         fontSize: 20,
     },
     companionInfo: {
+        paddingVertical: 5,
+        paddingHorizontal: 10,
         alignItems: 'center',
     },
     companionName: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
         marginBottom: 2,
     },
     companionPersonality: {
-        fontSize: 12,
+        textAlign: 'center',
+        alignItems: 'center',
+        fontSize: 11,
         fontWeight: '500',
         marginBottom: 4,
+    },
+    personalityPill: {
+        paddingHorizontal: 8,
+        borderRadius: 999,
+        marginBottom: 6,
+        marginHorizontal: 4,
+    },
+    personalityPillText: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
+    personalityPillsRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginBottom: 2,
     },
     companionDescription: {
         fontSize: 11,
