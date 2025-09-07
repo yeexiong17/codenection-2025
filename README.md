@@ -1,50 +1,69 @@
-# Welcome to your Expo app 👋
+## Mental Wellness App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+### Track Selected
+- **Student Lifestyle**
 
-## Get started
+### Problem Statement Selected
+- **Mental Health Support For Students**
 
-1. Install dependencies
+### APK Download
+- Download the latest Android APK from Google Drive: [APK folder](https://drive.google.com/drive/folders/17Pm9PMKhDyNR-TWz8bSpqctqxJyA23Hf?usp=sharing)
 
-   ```bash
-   npm install
-   ```
+## Overview
+An AI-powered wellness app for students that connects daily life with mental health. It syncs Google Calendar to surface upcoming triggers (deadlines, schedules, finances), supports lightweight mood and journal logging, and offers a friendly AI companion via text and voice for contextual, actionable advice. Multiple companion personalities let students choose the tone that fits the moment, from calm reflection to upbeat motivation.
 
-2. Start the app
+## Key Features
 
-   ```bash
-   npx expo start
-   ```
+### App
+- **Google Calendar syncing**: Events, tasks, and schedules stay in sync.
+- **Mood & Journal Logs**: Lightweight entries to track patterns over time.
+- **Calendar View**: Visualize entries and streaks to encourage consistency.
+- **Beautiful UI**: Student-centric design with accessible colors and icons.
 
-In the output, you'll find options to open the app in a
+### AI features
+- **Identifies upcoming triggers**: Deadlines, schedule, and financial commitments.
+- **Tailored recommendations/advice** based on patterns and context.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### AI Voice
+- **Contextual Q&A**: Ask questions based on your calendar and personal data.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### AI Companion
+- **Supportive friend feel**: Empathetic tone for reflection and encouragement.
+- **Multiple companions**: Create companions with different personalities.
+  - **Calm Listener**: Empathetic, mostly listens, gives gentle reflections.
+  - **Cheerful Buddy**: Optimistic, sends motivational reminders.
 
-## Get a fresh project
+## Tech Stack
+- **React Native**: User interface
+- **Node.js (Backend)**: API services and business logic
+- **OpenAI**: AI companion and LLM Inference
+- **Google Calendar API**: Calendar sync and scheduling features
+- **Supabase (Database)**: Auth, database, and storage
 
-When you're ready, run:
+## Getting Started (Development)
+1. Install prerequisites: Node.js (LTS), Git, and a package manager (npm/yarn/pnpm).
+2. Install dependencies:
+   - `npm install`
+3. Start the app:
+   - `npx expo start`
+4. Run on device/emulator:
+   - Press `a` for Android emulator, `i` for iOS simulator (macOS), or scan the QR code in Expo Go.
 
-```bash
-npm run reset-project
-```
+## Build
+- Android (local): `npx expo run:android`
+- Managed build service: `npx expo prebuild` (if needed) then `eas build -p android`
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+For quick testing on Android, use the provided APK link above.
 
-## Learn more
+## Project Structure (high-level)
+- `app/(tabs)/` — Tab-based screens (e.g., `index.tsx`, `calendar.tsx`, `ai-chat.tsx`, `ai-companion.tsx`)
+- `constants/` — Shared constants (e.g., colors, mock data)
+- `config/` — App configuration (e.g., Font Awesome setup)
 
-To learn more about developing your project with Expo, look at the following resources:
+## Privacy & Safety
+- Journaling and AI features are designed for wellness support and are not a substitute for professional care. For emergencies, contact local emergency services or trusted hotlines.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## License
+This project is licensed under the MIT License.
 
-## Join the community
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
