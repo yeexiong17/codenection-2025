@@ -63,7 +63,7 @@ export const mockCalendarEvents: CalendarEvent[] = [
     {
         id: '1',
         title: 'Final Exam - Computer Science',
-        date: '2024-03-20T10:00:00',
+        date: '2024-09-07T10:00:00',
         type: 'exam',
         description: 'CS401 Final Examination',
         calendarId: 'university'
@@ -79,7 +79,7 @@ export const mockCalendarEvents: CalendarEvent[] = [
     {
         id: '3',
         title: 'Study Group - Database Systems',
-        date: '2024-03-21T15:00:00',
+        date: '2024-09-07T15:00:00',
         type: 'class',
         description: 'Group project meeting in Library Room 204',
         calendarId: 'university'
@@ -104,7 +104,7 @@ export const mockCalendarEvents: CalendarEvent[] = [
     {
         id: '6',
         title: 'Dentist Appointment',
-        date: '2024-03-22T11:30:00',
+        date: '2024-09-07T11:30:00',
         type: 'other',
         description: 'Regular checkup',
         calendarId: 'personal'
@@ -113,7 +113,7 @@ export const mockCalendarEvents: CalendarEvent[] = [
     {
         id: '7',
         title: 'Part-time Job Shift',
-        date: '2024-03-23T09:00:00',
+        date: '2024-09-07T09:00:00',
         type: 'other',
         description: 'Shift at the campus bookstore',
         calendarId: 'work'

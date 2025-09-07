@@ -5,6 +5,7 @@ import {
     faCalendar,
     faChartBar,
     faChevronDown,
+    faChevronUp,
     faCircle,
     faCircleInfo,
     faCircleQuestion,
@@ -25,7 +26,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add icons to the library
-library.add(
+const solidIcons = [
     faChartBar,
     faBrain,
     faGear,
@@ -36,6 +37,7 @@ library.add(
     faCircleQuestion,
     faCircleInfo,
     faChevronDown,
+    faChevronUp,
     faCircle,
     faComment,
     faKeyboard,
@@ -48,4 +50,5 @@ library.add(
     faSpinner,
     faSyncAlt,
     faTimes
-);
+];
+library.add(solidIcons as any);

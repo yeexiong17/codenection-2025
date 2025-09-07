@@ -91,6 +91,7 @@ export default function AICompanionScreen() {
     const [showCompanionSelector, setShowCompanionSelector] = useState(false);
     const [customCompanions, setCustomCompanions] = useState<AICompanion[]>([]);
     const [showAddCompanion, setShowAddCompanion] = useState(false);
+    const [isSelectorCollapsed, setIsSelectorCollapsed] = useState(true);
     const flatListRef = useRef<FlatList>(null);
 
     const allCompanions = [...defaultCompanions, ...customCompanions];
@@ -314,19 +315,46 @@ export default function AICompanionScreen() {
 
             {/* Companion Selector */}
             <View style={styles.companionSelector}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.companionScroll}>
-                    {allCompanions.map(renderCompanionCard)}
-                    <TouchableOpacity
-                        style={[styles.addCompanionCard, { backgroundColor: colors.cardBackground }]}
-                        onPress={() => setShowAddCompanion(true)}
-                        activeOpacity={0.7}
-                    >
-                        <View style={[styles.addCompanionIcon, { backgroundColor: colors.tint }]}>
-                            <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'plus' }} size={20} color="#FFFFFF" />
+                <TouchableOpacity
+                    style={[styles.selectorHeader, { backgroundColor: colors.cardBackground }]}
+                    onPress={() => setIsSelectorCollapsed(prev => !prev)}
+                    activeOpacity={0.8}
+                >
+                    <View style={styles.selectorHeaderLeft}>
+                        {selectedCompanion && (
+                            <View style={[styles.selectorAvatar, { backgroundColor: selectedCompanion.color + '20' }]}>
+                                <Text style={styles.avatarText}>{selectedCompanion.avatar}</Text>
+                            </View>
+                        )}
+                        <View>
+                            <Text style={[styles.selectorTitle, { color: colors.text }]}>Companion</Text>
+                            <Text style={[styles.selectorSubtitle, { color: colors.tabIconDefault }]}>
+                                {selectedCompanion ? selectedCompanion.name : 'None selected'}
+                            </Text>
                         </View>
-                        <Text style={[styles.addCompanionText, { color: colors.text }]}>Add New</Text>
-                    </TouchableOpacity>
-                </ScrollView>
+                    </View>
+                    <FontAwesomeIcon
+                        icon={{ prefix: 'fas', iconName: isSelectorCollapsed ? 'chevron-down' : 'chevron-up' }}
+                        size={14}
+                        color={colors.text}
+                    />
+                </TouchableOpacity>
+
+                {!isSelectorCollapsed && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.companionScroll}>
+                        {allCompanions.map(renderCompanionCard)}
+                        <TouchableOpacity
+                            style={[styles.addCompanionCard, { backgroundColor: colors.cardBackground }]}
+                            onPress={() => setShowAddCompanion(true)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.addCompanionIcon, { backgroundColor: colors.tint }]}>
+                                <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'plus' }} size={20} color="#FFFFFF" />
+                            </View>
+                            <Text style={[styles.addCompanionText, { color: colors.text }]}>Add New</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                )}
             </View>
 
             {/* Chat Messages */}
@@ -540,6 +568,41 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    },
+    selectorHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        marginHorizontal: 16,
+        marginBottom: 8,
+    },
+    selectorHeaderLeft: {
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    selectorAvatar: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+    },
+    selectorTitle: {
+        fontSize: 12,
+        fontWeight: '600',
+        opacity: 0.8,
+    },
+    selectorSubtitle: {
+        fontSize: 14,
+        fontWeight: '700',
     },
     companionScroll: {
         paddingHorizontal: 16,

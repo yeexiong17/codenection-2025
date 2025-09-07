@@ -263,7 +263,10 @@ export default function AIChatScreen() {
             return "I can see you have a busy day ahead. How are you feeling about managing your schedule? I'm here to help you stay balanced and prepared.";
         }
 
-        return "I'm here to support you. How can I help you feel more centered and prepared for your day?";
+        // Test Response
+        return "Good morning! Today you have 09:00 Part-time Job Shift, 10:00 Final Exam – Computer Science, 11:30 Dentist, and 15:00 Study Group. To prepare, confirm work essentials, review key exam concepts, and pack items for the dentist plus notes for the study group. Start with a 15‑minute prep: hydrate, light snack, two minutes of 4‑6 breathing, and a quick skim of core formulas/notes. Use an if–then plan: if you feel rushed, take a 60‑second reset and focus only on the very next step. Want a 3‑minute calm‑before‑exam breathing or a rapid review checklist?";
+
+        // return "I'm here to support you. How can I help you feel more centered and prepared for your day?";
     };
 
     const startRecording = async () => {
@@ -326,7 +329,7 @@ export default function AIChatScreen() {
                 } else if (hour < 17) {
                     simulatedText = "I'm feeling a bit stressed about my upcoming events";
                 } else {
-                    simulatedText = "How was my day and what should I focus on tomorrow?";
+                    simulatedText = "Good morning, how should I prepare for my day?";
                 }
 
                 handleSend(simulatedText);

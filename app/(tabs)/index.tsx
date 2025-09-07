@@ -1080,7 +1080,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <PageHeader title="MindEase Dashboard" />
+      <PageHeader title="Dashboard" />
       <Tab.Navigator
         screenOptions={{
           tabBarStyle: [styles.tabBar, { backgroundColor: colors.background }],
