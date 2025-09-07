@@ -42,6 +42,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="ai-companion"
+        options={{
+          title: 'AI Companion',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'robot' }} size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="calendar"
         options={{
           title: 'Calendar',

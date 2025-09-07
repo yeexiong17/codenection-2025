@@ -14,10 +14,13 @@ import {
     faLock,
     faMicrophone,
     faPaperPlane,
+    faPlus,
+    faRobot,
     faSpinner,
     faSquare,
     faStop,
     faSyncAlt,
+    faTimes,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -38,8 +41,11 @@ library.add(
     faKeyboard,
     faMicrophone,
     faPaperPlane,
+    faPlus,
+    faRobot,
     faSquare,
     faStop,
     faSpinner,
-    faSyncAlt
+    faSyncAlt,
+    faTimes
 );
