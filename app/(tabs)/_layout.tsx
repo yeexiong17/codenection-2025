@@ -37,8 +37,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai-chat"
         options={{
-          title: 'AI Chat',
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'brain' }} size={24} color={color} />,
+          title: 'Voice AI',
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={{ prefix: 'fas', iconName: 'microphone' }} size={24} color={color} />,
         }}
       />
       <Tabs.Screen

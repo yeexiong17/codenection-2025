@@ -1,4 +1,5 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -87,6 +88,11 @@ function InsightsTab() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
+      {/* Stress Patterns - moved to top */}
+      <View style={[styles.stressHeatmapCard, { backgroundColor: colors.background }]}>
+        <StressHeatmap />
+      </View>
+
       {/* Insights Overview */}
       <View style={[styles.insightsOverviewCard, { backgroundColor: colors.background }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Insights Overview</Text>
@@ -185,11 +191,6 @@ function InsightsTab() {
         </TouchableOpacity>
       </View>
 
-      {/* Stress Heatmap - moved from Statistics tab */}
-      <View style={[styles.stressHeatmapCard, { backgroundColor: colors.background }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Stress Patterns</Text>
-        <StressHeatmap />
-      </View>
     </ScrollView>
   );
 };
@@ -198,6 +199,7 @@ function InsightsTab() {
 function SummaryTab() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const navigation = useNavigation();
 
   const stats = {
     upcomingEvents: mockCalendarEvents.length,
@@ -348,7 +350,14 @@ function SummaryTab() {
               ))}
             </View>
 
-            <TouchableOpacity style={[styles.dailyStressReminderButton, { backgroundColor: urgencyColor }]}>
+            <TouchableOpacity
+              style={[styles.dailyStressReminderButton, { backgroundColor: urgencyColor }]}
+              onPress={() => {
+                // Navigate to Smart Schedule tab
+                navigation.navigate('Smart Schedule' as never);
+              }}
+              activeOpacity={0.8}
+            >
               <Text style={styles.dailyStressReminderButtonText}>
                 {aiRecommendation.urgency === 'high' ? 'Start Emergency Calm Session' :
                   aiRecommendation.urgency === 'medium' ? 'Begin Stress Relief' : 'Continue Wellness Journey'}
@@ -607,9 +616,12 @@ function AIRecommendationsTab() {
           <Text style={[styles.timelineTitle, { color: colors.text }]}>
             AI-Powered Daily Schedule
           </Text>
-          <View style={[styles.timelineIcon, { backgroundColor: colors.tint }]}>
-            <Text style={styles.timelineIconText}>⏰</Text>
-          </View>
+        </View>
+
+        <View style={[styles.timelineNote, { backgroundColor: colors.tint + '15' }]}>
+          <Text style={[styles.timelineNoteText, { color: colors.tint }]}>
+            💡 Tap on wellness activities to mark them as complete
+          </Text>
         </View>
 
         <View style={styles.timelineContainer}>
@@ -725,6 +737,7 @@ function AIRecommendationsTab() {
 function CalendarTab() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const router = useRouter();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showDayModal, setShowDayModal] = useState(false);
 
@@ -1011,8 +1024,31 @@ function CalendarTab() {
                       <Text style={[styles.modalEventDescription, { color: colors.text }]}>
                         {event.description}
                       </Text>
-                      <View style={[styles.modalEventType, { backgroundColor: getEventTypeColor(event.type) }]}>
-                        <Text style={styles.modalEventTypeText}>{event.type.toUpperCase()}</Text>
+                      <View style={styles.modalEventFooter}>
+                        <View style={[styles.modalEventType, { backgroundColor: getEventTypeColor(event.type) }]}>
+                          <Text style={styles.modalEventTypeText}>{event.type.toUpperCase()}</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={[styles.aiSuggestionButton, { backgroundColor: colors.tint }]}
+                          onPress={() => {
+                            setShowDayModal(false);
+                            // Navigate to Voice AI with event context
+                            router.push({
+                              pathname: '/ai-chat',
+                              params: {
+                                eventContext: JSON.stringify({
+                                  title: event.title,
+                                  type: event.type,
+                                  time: format(new Date(event.date), 'h:mm a'),
+                                  date: format(new Date(event.date), 'MMM d, yyyy')
+                                })
+                              }
+                            });
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.aiSuggestionButtonText}>🎤 Get AI Prep</Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
@@ -1028,52 +1064,6 @@ function CalendarTab() {
                 </View>
               )}
 
-              {/* Stress Management Reminder */}
-              {getSelectedDayEvents().length > 0 && (
-                <View style={[styles.stressReminderCard, { backgroundColor: colors.cardBackground }]}>
-                  <View style={styles.stressReminderHeader}>
-                    <View style={[styles.stressReminderIcon, { backgroundColor: '#FF6B6B' }]}>
-                      <Text style={styles.stressReminderEmoji}>🧘</Text>
-                    </View>
-                    <Text style={[styles.stressReminderTitle, { color: colors.text }]}>
-                      Stress Management Reminder
-                    </Text>
-                  </View>
-                  <Text style={[styles.stressReminderText, { color: colors.text }]}>
-                    You have {getSelectedDayEvents().length} event{getSelectedDayEvents().length > 1 ? 's' : ''} scheduled today.
-                    Consider these stress management techniques:
-                  </Text>
-                  <View style={styles.stressTipsList}>
-                    <View style={styles.stressTipItem}>
-                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
-                      <Text style={[styles.stressTipText, { color: colors.text }]}>
-                        Take 5-10 minutes to breathe deeply before each event
-                      </Text>
-                    </View>
-                    <View style={styles.stressTipItem}>
-                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
-                      <Text style={[styles.stressTipText, { color: colors.text }]}>
-                        Prepare materials and notes in advance
-                      </Text>
-                    </View>
-                    <View style={styles.stressTipItem}>
-                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
-                      <Text style={[styles.stressTipText, { color: colors.text }]}>
-                        Take short breaks between events if possible
-                      </Text>
-                    </View>
-                    <View style={styles.stressTipItem}>
-                      <Text style={[styles.stressTipBullet, { color: colors.tint }]}>•</Text>
-                      <Text style={[styles.stressTipText, { color: colors.text }]}>
-                        Stay hydrated and have healthy snacks ready
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity style={[styles.stressReminderButton, { backgroundColor: colors.tint }]}>
-                    <Text style={styles.stressReminderButtonText}>Open AI Plan</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
             </ScrollView>
           </View>
         </View>
@@ -1090,7 +1080,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <PageHeader title="Dashboard" />
+      <PageHeader title="MindEase Dashboard" />
       <Tab.Navigator
         screenOptions={{
           tabBarStyle: [styles.tabBar, { backgroundColor: colors.background }],
@@ -1099,9 +1089,9 @@ export default function DashboardScreen() {
           tabBarInactiveTintColor: colors.tabIconDefault,
           tabBarLabelStyle: styles.tabLabel,
         }}>
-        <Tab.Screen name="Summary" component={SummaryTab} />
-        <Tab.Screen name="Insights" component={InsightsTab} />
-        <Tab.Screen name="AI Plan" component={AIRecommendationsTab} />
+        <Tab.Screen name="Overview" component={SummaryTab} />
+        <Tab.Screen name="AI Insights" component={InsightsTab} />
+        <Tab.Screen name="Smart Schedule" component={AIRecommendationsTab} />
         <Tab.Screen name="Calendar" component={CalendarTab} />
       </Tab.Navigator>
     </View>
@@ -1624,7 +1614,10 @@ const styles = StyleSheet.create({
   dayModal: {
     width: '100%',
     maxHeight: '80%',
-    borderRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
@@ -1696,8 +1689,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 8,
   },
+  modalEventFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
   modalEventType: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -1705,6 +1703,18 @@ const styles = StyleSheet.create({
   modalEventTypeText: {
     color: '#FFFFFF',
     fontSize: 11,
+    fontWeight: '600',
+  },
+  aiSuggestionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  aiSuggestionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
   },
   noEventsContainer: {
@@ -1923,76 +1933,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  // Stress Management Reminder Styles
-  stressReminderCard: {
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 20,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  stressReminderHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  stressReminderIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  stressReminderEmoji: {
-    fontSize: 20,
-  },
-  stressReminderTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    flex: 1,
-  },
-  stressReminderText: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 16,
-    opacity: 0.8,
-  },
-  stressTipsList: {
-    marginBottom: 20,
-  },
-  stressTipItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  stressTipBullet: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  stressTipText: {
-    fontSize: 14,
-    lineHeight: 20,
-    flex: 1,
-    opacity: 0.9,
-  },
-  stressReminderButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  stressReminderButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
 
   // Daily Stress Management Reminder Styles (Summary Tab)
   dailyStressReminderCard: {
@@ -2105,6 +2045,17 @@ const styles = StyleSheet.create({
   },
   timelineIconText: {
     fontSize: 16,
+  },
+  timelineNote: {
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  timelineNoteText: {
+    fontSize: 11,
+    fontWeight: '500',
   },
   timelineContainer: {
     paddingLeft: 6,

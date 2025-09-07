@@ -14,8 +14,10 @@ import {
     faLock,
     faMicrophone,
     faPaperPlane,
+    faSpinner,
     faSquare,
     faStop,
+    faSyncAlt,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -37,5 +39,7 @@ library.add(
     faMicrophone,
     faPaperPlane,
     faSquare,
-    faStop
+    faStop,
+    faSpinner,
+    faSyncAlt
 );

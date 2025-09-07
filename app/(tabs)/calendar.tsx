@@ -6,24 +6,16 @@ import { PageHeader } from '@/components/PageHeader';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { ThemedView as View } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { CalendarSource, mockCalendarEvents, mockCalendarSources } from '@/constants/MockData';
+import { CalendarSource, mockCalendarSources } from '@/constants/MockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
-};
 
 export default function CalendarScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [calendars, setCalendars] = useState(mockCalendarSources);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [lastSyncTime, setLastSyncTime] = useState('5 minutes ago');
 
     const toggleCalendar = (id: string) => {
         setCalendars(prev =>
@@ -31,6 +23,16 @@ export default function CalendarScreen() {
                 cal.id === id ? { ...cal, enabled: !cal.enabled } : cal
             )
         );
+    };
+
+    const handleSync = async () => {
+        setIsSyncing(true);
+
+        // Simulate sync process
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        setIsSyncing(false);
+        setLastSyncTime('Just now');
     };
 
     const renderCalendarSource = (source: CalendarSource) => (
@@ -55,26 +57,36 @@ export default function CalendarScreen() {
         <View style={[styles.syncCard, { backgroundColor: colors.cardBackground }]}>
             <RNView style={styles.syncHeader}>
                 <FontAwesomeIcon
-                    icon={{ prefix: 'fas', iconName: 'calendar' }}
-                    size={24}
+                    icon="calendar"
+                    size={20}
                     color={colors.tint}
                 />
                 <Text style={styles.syncTitle}>Google Calendar</Text>
+                <Text style={styles.syncStatus}>Connected</Text>
             </RNView>
-            <Text style={styles.syncStatus}>Connected</Text>
-            <Text style={styles.lastSync}>Last synced: 5 minutes ago</Text>
+            <Text style={styles.lastSync}>Last synced: {lastSyncTime}</Text>
             <TouchableOpacity
                 style={[styles.syncButton, { backgroundColor: colors.tint }]}
-                onPress={() => {/* Handle sync */ }}
+                onPress={handleSync}
+                disabled={isSyncing}
+                activeOpacity={0.8}
             >
-                <Text style={styles.syncButtonText}>Sync Now</Text>
+                <FontAwesomeIcon
+                    icon={isSyncing ? 'spinner' : 'sync-alt'}
+                    size={16}
+                    color="#FFFFFF"
+                />
+                <Text style={styles.syncButtonText}>
+                    {isSyncing ? 'Syncing...' : 'Sync Now'}
+                </Text>
             </TouchableOpacity>
         </View>
     );
 
+
     return (
         <ScrollView style={styles.container}>
-            <PageHeader title="Calendar" />
+            <PageHeader title="AI Calendar" />
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Sync Status</Text>
@@ -86,33 +98,6 @@ export default function CalendarScreen() {
                 {calendars.map(renderCalendarSource)}
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Upcoming Events</Text>
-                {mockCalendarEvents
-                    .filter(event => calendars.find(cal => cal.id === event.calendarId)?.enabled)
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map(event => {
-                        const calendar = calendars.find(cal => cal.id === event.calendarId);
-                        return (
-                            <View
-                                key={event.id}
-                                style={[styles.eventCard, { backgroundColor: colors.cardBackground }]}
-                            >
-                                <RNView style={styles.eventHeader}>
-                                    <RNView style={styles.eventTitleContainer}>
-                                        <RNView style={[styles.colorDot, { backgroundColor: calendar?.color }]} />
-                                        <Text style={styles.eventTitle}>{event.title}</Text>
-                                    </RNView>
-                                    <Text style={styles.eventDate}>{formatDate(event.date)}</Text>
-                                </RNView>
-                                <Text style={styles.eventDescription}>{event.description}</Text>
-                                <Text style={[styles.calendarName, { color: calendar?.color }]}>
-                                    {calendar?.name}
-                                </Text>
-                            </View>
-                        );
-                    })}
-            </View>
         </ScrollView>
     );
 }
@@ -132,39 +117,45 @@ const styles = StyleSheet.create({
     },
     syncCard: {
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         marginBottom: 12,
     },
     syncHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
-    },
-    syncTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginLeft: 12,
-    },
-    syncStatus: {
-        fontSize: 16,
-        color: '#7C9A92', // Sage green for success
-        fontWeight: '600',
+        justifyContent: 'space-between',
         marginBottom: 4,
     },
-    lastSync: {
-        fontSize: 14,
-        opacity: 0.7,
-        marginBottom: 16,
-    },
-    syncButton: {
-        borderRadius: 8,
-        padding: 12,
-        alignItems: 'center',
-    },
-    syncButtonText: {
-        color: '#FFF',
+    syncTitle: {
         fontSize: 16,
         fontWeight: '600',
+        marginLeft: 8,
+        flex: 1,
+    },
+    syncStatus: {
+        fontSize: 14,
+        color: '#7C9A92', // Sage green for success
+        fontWeight: '600',
+    },
+    lastSync: {
+        fontSize: 12,
+        opacity: 0.7,
+        marginBottom: 12,
+    },
+    syncButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+    },
+    syncButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 8,
     },
     calendarItem: {
         borderRadius: 12,
@@ -189,40 +180,5 @@ const styles = StyleSheet.create({
     calendarName: {
         fontSize: 16,
         fontWeight: '500',
-    },
-    eventCard: {
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-    },
-    eventHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-    },
-    eventTitleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        marginRight: 12,
-    },
-    eventTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        flex: 1,
-    },
-    eventDate: {
-        fontSize: 14,
-        opacity: 0.7,
-    },
-    eventDescription: {
-        fontSize: 14,
-        marginBottom: 8,
-        opacity: 0.8,
-    },
-    calendarName: {
-        fontSize: 12,
-        fontWeight: '600',
     },
 });

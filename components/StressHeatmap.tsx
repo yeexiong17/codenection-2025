@@ -1,6 +1,5 @@
 import React from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText as Text } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
@@ -66,16 +65,6 @@ const mockStressData: StressLevel[] = generateStressData();
 export function StressHeatmap() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
-    const screenWidth = Dimensions.get('window').width;
-
-    const getStressValue = (level: StressLevel['level']) => {
-        switch (level) {
-            case 'low': return 1;
-            case 'medium': return 2;
-            case 'high': return 3;
-            default: return 1;
-        }
-    };
 
     const getStressColor = (level: StressLevel['level']) => {
         const baseColors = {
@@ -86,146 +75,71 @@ export function StressHeatmap() {
         return baseColors[level];
     };
 
-    // Chart dimensions
-    const chartWidth = screenWidth - 80; // Account for padding
-    const chartHeight = 200;
-    const padding = 40;
-    const dataPoints = mockStressData.length;
-
-    // Calculate points for the line chart
-    const points = mockStressData.map((data, index) => {
-        const x = padding + (index / (dataPoints - 1)) * (chartWidth - 2 * padding);
-        const y = padding + (3 - getStressValue(data.level)) * (chartHeight - 2 * padding) / 2;
-        return { x, y, data };
-    });
-
-    // Create path for the line
-    const pathData = points.map((point, index) => {
-        return `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`;
-    }).join(' ');
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // Calculate stress statistics
+    const stressStats = {
+        low: mockStressData.filter(item => item.level === 'low').length,
+        medium: mockStressData.filter(item => item.level === 'medium').length,
+        high: mockStressData.filter(item => item.level === 'high').length,
     };
 
+    const totalDays = mockStressData.length;
+    const averageStress = ((stressStats.low * 1) + (stressStats.medium * 2) + (stressStats.high * 3)) / totalDays;
+
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={[styles.title, { color: colors.text }]}>Stress Level Trends</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Stress Patterns</Text>
                 <Text style={[styles.subtitle, { color: colors.text }]}>Last 30 days</Text>
             </View>
 
-            <View style={styles.chartContainer}>
-                <Svg width={chartWidth} height={chartHeight}>
-                    {/* Grid lines */}
-                    <Line
-                        x1={padding}
-                        y1={padding}
-                        x2={chartWidth - padding}
-                        y2={padding}
-                        stroke={colors.text + '20'}
-                        strokeWidth={1}
-                    />
-                    <Line
-                        x1={padding}
-                        y1={padding + (chartHeight - 2 * padding) / 2}
-                        x2={chartWidth - padding}
-                        y2={padding + (chartHeight - 2 * padding) / 2}
-                        stroke={colors.text + '20'}
-                        strokeWidth={1}
-                    />
-                    <Line
-                        x1={padding}
-                        y1={chartHeight - padding}
-                        x2={chartWidth - padding}
-                        y2={chartHeight - padding}
-                        stroke={colors.text + '20'}
-                        strokeWidth={1}
-                    />
+            {/* Stress Summary */}
+            <View style={styles.summaryContainer}>
+                <View style={styles.summaryCard}>
+                    <Text style={[styles.summaryTitle, { color: colors.text }]}>Average Stress Level</Text>
 
-                    {/* Y-axis labels */}
-                    <SvgText
-                        x={padding - 10}
-                        y={padding + 5}
-                        fontSize="12"
-                        fill={colors.text + '80'}
-                        textAnchor="end"
-                    >
-                        High
-                    </SvgText>
-                    <SvgText
-                        x={padding - 10}
-                        y={padding + (chartHeight - 2 * padding) / 2 + 5}
-                        fontSize="12"
-                        fill={colors.text + '80'}
-                        textAnchor="end"
-                    >
-                        Medium
-                    </SvgText>
-                    <SvgText
-                        x={padding - 10}
-                        y={chartHeight - padding + 5}
-                        fontSize="12"
-                        fill={colors.text + '80'}
-                        textAnchor="end"
-                    >
-                        Low
-                    </SvgText>
-
-                    {/* Line chart */}
-                    <Path
-                        d={pathData}
-                        stroke={colors.tint}
-                        strokeWidth={3}
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-
-                    {/* Data points */}
-                    {points.map((point, index) => (
-                        <Circle
-                            key={index}
-                            cx={point.x}
-                            cy={point.y}
-                            r={4}
-                            fill={getStressColor(point.data.level)}
-                            stroke={colors.background}
-                            strokeWidth={2}
-                        />
-                    ))}
-                </Svg>
-
-                {/* X-axis labels */}
-                <View style={styles.xAxisLabels}>
-                    <Text style={[styles.xAxisLabel, { color: colors.text }]}>
-                        {formatDate(mockStressData[0].date)}
-                    </Text>
-                    <Text style={[styles.xAxisLabel, { color: colors.text }]}>
-                        {formatDate(mockStressData[Math.floor(dataPoints / 2)].date)}
-                    </Text>
-                    <Text style={[styles.xAxisLabel, { color: colors.text }]}>
-                        {formatDate(mockStressData[dataPoints - 1].date)}
-                    </Text>
+                    {/* Visual Scale */}
+                    <View style={styles.scaleContainer}>
+                        <View style={styles.scaleLabels}>
+                            <Text style={[styles.scaleLabel, { color: colors.text }]}>Low</Text>
+                            <Text style={[styles.scaleLabel, { color: colors.text }]}>Medium</Text>
+                            <Text style={[styles.scaleLabel, { color: colors.text }]}>High</Text>
+                        </View>
+                        <View style={styles.scaleBar}>
+                            <View style={[styles.scaleBackground, { backgroundColor: colors.cardBackground }]}>
+                                <View
+                                    style={[
+                                        styles.scaleFill,
+                                        {
+                                            width: `${((averageStress - 1) / 2) * 100}%`,
+                                            backgroundColor: averageStress < 1.5 ? getStressColor('low') :
+                                                averageStress < 2.5 ? getStressColor('medium') :
+                                                    getStressColor('high')
+                                        }
+                                    ]}
+                                />
+                            </View>
+                        </View>
+                        <Text style={[styles.scaleValue, { color: colors.tint }]}>
+                            {averageStress.toFixed(1)} / 3.0
+                        </Text>
+                    </View>
                 </View>
-            </View>
 
-            {/* Legend */}
-            <View style={styles.legend}>
-                <Text style={[styles.legendTitle, { color: colors.text }]}>Stress Level</Text>
-                <View style={styles.legendItems}>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendColor, { backgroundColor: getStressColor('low') }]} />
-                        <Text style={[styles.legendText, { color: colors.text }]}>Low</Text>
+                <View style={styles.statsGrid}>
+                    <View style={styles.statItem}>
+                        <View style={[styles.statColor, { backgroundColor: getStressColor('low') }]} />
+                        <Text style={[styles.statNumber, { color: colors.text }]}>{stressStats.low}</Text>
+                        <Text style={[styles.statLabel, { color: colors.text }]}>Low Days</Text>
                     </View>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendColor, { backgroundColor: getStressColor('medium') }]} />
-                        <Text style={[styles.legendText, { color: colors.text }]}>Medium</Text>
+                    <View style={styles.statItem}>
+                        <View style={[styles.statColor, { backgroundColor: getStressColor('medium') }]} />
+                        <Text style={[styles.statNumber, { color: colors.text }]}>{stressStats.medium}</Text>
+                        <Text style={[styles.statLabel, { color: colors.text }]}>Medium Days</Text>
                     </View>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendColor, { backgroundColor: getStressColor('high') }]} />
-                        <Text style={[styles.legendText, { color: colors.text }]}>High</Text>
+                    <View style={styles.statItem}>
+                        <View style={[styles.statColor, { backgroundColor: getStressColor('high') }]} />
+                        <Text style={[styles.statNumber, { color: colors.text }]}>{stressStats.high}</Text>
+                        <Text style={[styles.statLabel, { color: colors.text }]}>High Days</Text>
                     </View>
                 </View>
             </View>
@@ -236,12 +150,6 @@ export function StressHeatmap() {
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
-        elevation: 5,
     },
     header: {
         marginBottom: 20,
@@ -258,57 +166,87 @@ const styles = StyleSheet.create({
         opacity: 0.7,
         fontWeight: '500',
     },
-    chartContainer: {
+    summaryContainer: {
         marginBottom: 20,
+    },
+    summaryCard: {
+        alignItems: 'center',
+        padding: 20,
+        borderRadius: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+        marginBottom: 20,
+    },
+    summaryTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+        opacity: 0.8,
+    },
+    summaryValue: {
+        fontSize: 32,
+        fontWeight: '800',
+        marginBottom: 4,
+    },
+    summarySubtext: {
+        fontSize: 14,
+        fontWeight: '600',
+        opacity: 0.7,
+    },
+    scaleContainer: {
+        width: '100%',
         alignItems: 'center',
     },
-    xAxisLabels: {
+    scaleLabels: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        paddingHorizontal: 40,
-        marginTop: 8,
+        marginBottom: 8,
     },
-    xAxisLabel: {
-        fontSize: 11,
-        opacity: 0.7,
-        fontWeight: '500',
-    },
-    legend: {
-        alignItems: 'center',
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.08)',
-    },
-    legendTitle: {
-        fontSize: 13,
-        fontWeight: '600',
-        marginBottom: 12,
-        opacity: 0.8,
-    },
-    legendItems: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    legendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginHorizontal: 16,
-    },
-    legendColor: {
-        width: 20,
-        height: 20,
-        borderRadius: 8,
-        marginRight: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 3,
-        elevation: 2,
-    },
-    legendText: {
+    scaleLabel: {
         fontSize: 12,
-        fontWeight: '600',
-        opacity: 0.8,
+        fontWeight: '500',
+        opacity: 0.7,
+    },
+    scaleBar: {
+        width: '100%',
+        marginBottom: 12,
+    },
+    scaleBackground: {
+        height: 8,
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    scaleFill: {
+        height: '100%',
+        borderRadius: 4,
+    },
+    scaleValue: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
+    statItem: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    statColor: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    statNumber: {
+        fontSize: 24,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    statLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+        opacity: 0.7,
+        textAlign: 'center',
     },
 });
